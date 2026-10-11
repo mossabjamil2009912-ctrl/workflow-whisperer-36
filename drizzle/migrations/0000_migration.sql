@@ -1,4 +1,4 @@
-CREATE TABLE public.customers (
+CREATE TABLE IF NOT EXISTS public.customers (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   phone text NOT NULL UNIQUE,
   name text, city text, notes text, system text, last_message text,
@@ -10,7 +10,7 @@ CREATE TABLE public.customers (
 GRANT ALL ON public.customers TO service_role;
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
 
-CREATE TABLE public.messages (
+CREATE TABLE IF NOT EXISTS public.messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   customer_id uuid NOT NULL REFERENCES public.customers(id) ON DELETE CASCADE,
   direction text NOT NULL DEFAULT 'customer',
@@ -18,11 +18,11 @@ CREATE TABLE public.messages (
   text text NOT NULL DEFAULT '',
   created_at timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX ON public.messages(customer_id, created_at);
+CREATE INDEX IF NOT EXISTS messages_customer_created_idx ON public.messages(customer_id, created_at);
 GRANT ALL ON public.messages TO service_role;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
-CREATE TABLE public.orders (
+CREATE TABLE IF NOT EXISTS public.orders (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   customer_id uuid REFERENCES public.customers(id) ON DELETE SET NULL,
   phone text NOT NULL,
@@ -34,8 +34,8 @@ CREATE TABLE public.orders (
 GRANT ALL ON public.orders TO service_role;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
-CREATE SEQUENCE public.support_ticket_seq START 1001;
-CREATE TABLE public.support_tickets (
+CREATE SEQUENCE IF NOT EXISTS public.support_ticket_seq START 1001;
+CREATE TABLE IF NOT EXISTS public.support_tickets (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   ticket_no text NOT NULL UNIQUE DEFAULT ('ACTES-SUP-' || nextval('public.support_ticket_seq')::text),
   customer_id uuid REFERENCES public.customers(id),
