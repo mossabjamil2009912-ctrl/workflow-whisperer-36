@@ -246,7 +246,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
         : view === "tickets" ? <div className="rounded-2xl border border-border bg-card"><Tickets pw={pw} /></div>
         : view === "catalog" ? <div className="rounded-2xl border border-border bg-card"><Catalog pw={pw} /></div> : <>
         <div className="grid grid-cols-5 gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm md:gap-3 md:p-3">
-          {stats.map((s) => { const st = statStyle[s.key]; const Ic = st.icon; return (
+          {stats.map((s) => { const st = statStyle[s.key] ?? statStyle.all!; const Ic = st.icon; return (
             <button key={s.label} onClick={() => setFilter(filter === s.key ? "all" : s.key)}
               style={{ background: `linear-gradient(160deg, transparent 55%, color-mix(in oklch, var(--color-${st.c}) 14%, transparent))` }}
               className={`flex flex-col items-center gap-1 rounded-xl border p-2 transition md:p-4 ${filter === s.key ? "border-primary ring-2 ring-primary/30" : "border-border"}`}>
