@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowRight, FileText, Search, Phone, MapPin, Sun, MessageCircle, Lock, Send, Bell, BellOff, Bot, User, Moon, Copy, Check, Clock, Download, StickyNote } from "lucide-react";
+import { ArrowRight, FileText, Search, Phone, MapPin, Sun, MessageCircle, Lock, Send, Bell, BellOff, Bot, User, Moon, Copy, Check, Clock, Download, StickyNote, Headphones, LayoutGrid, Image as ImageIcon, Inbox, ShoppingCart, UserPlus, Wallet } from "lucide-react";
 
 let audioCtx: AudioContext | null = null;
 function playChime() {
@@ -194,110 +194,131 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
   useEffect(() => { const d = localStorage.getItem("actes_dark") === "1"; setDark(d); document.documentElement.classList.toggle("dark", d); }, []);
   const toggleDark = () => { const d = !dark; setDark(d); localStorage.setItem("actes_dark", d ? "1" : "0"); document.documentElement.classList.toggle("dark", d); };
 
+  const statStyle: Record<string, { icon: typeof User; c: string }> = {
+    all: { icon: User, c: "s-purple" }, quote: { icon: FileText, c: "s-green" }, sld: { icon: ImageIcon, c: "s-blue" },
+    cod: { icon: Inbox, c: "s-gray" }, buy: { icon: ShoppingCart, c: "s-red" },
+  };
+  const stageIcon: Record<string, typeof User> = { new: UserPlus, quote: FileText, sld: ImageIcon, cod: Wallet, buy: ShoppingCart, human: User };
+  const tabs = [
+    { k: "chats" as const, l: "المحادثات", i: MessageCircle, n: 0 },
+    { k: "orders" as const, l: "الطلبات", i: FileText, n: pending },
+    { k: "tickets" as const, l: "الدعم الفني", i: Headphones, n: openTickets },
+    { k: "catalog" as const, l: "الأصناف", i: LayoutGrid, n: 0 },
+  ];
+
   return (
-    <div dir="rtl" className="flex h-screen bg-background text-foreground">
-      <aside className="flex w-full flex-col">
-        <header className="bg-primary px-4 pb-4 pt-5 text-primary-foreground">
-          <div className="flex items-center gap-2">
-            <img src={logo} alt="ACTES أكتس" className="h-9 w-auto rounded-md bg-card px-1" />
-            <h1 className="flex-1 text-lg font-bold">محادثات العملاء</h1>
-            <button onClick={toggleDark} aria-label={dark ? "الوضع الفاتح" : "الوضع الليلي"} title={dark ? "الوضع الفاتح" : "الوضع الليلي"}
-              className="rounded-md p-1.5 hover:bg-primary-foreground/10">
-              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-            <button
-              onClick={() => { const m = !muted; setMuted(m); localStorage.setItem("actes_mute", m ? "1" : "0"); if (!m) playChime(); }}
-              aria-label={muted ? "تشغيل صوت التنبيه" : "كتم صوت التنبيه"}
-              title={muted ? "تشغيل صوت التنبيه" : "كتم صوت التنبيه"}
-              className="rounded-md p-1.5 hover:bg-primary-foreground/10">
-              {muted ? <BellOff className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
-            </button>
-            <button onClick={onLogout} className="text-xs opacity-80">خروج</button>
-          </div>
-          <div className="mt-3 grid grid-cols-4 gap-1 rounded-lg bg-primary-foreground/10 p-1 text-sm">
-            <button onClick={() => setView("chats")} className={`rounded-md py-1.5 ${view === "chats" ? "bg-card font-semibold text-foreground" : ""}`}>المحادثات</button>
-            <button onClick={() => { setView("orders"); setOpenId(null); }} className={`relative rounded-md py-1.5 ${view === "orders" ? "bg-card font-semibold text-foreground" : ""}`}>
-              الطلبات
-              {pending > 0 && <span className="absolute -top-1 left-2 rounded-full bg-destructive px-1.5 text-[11px] font-bold text-destructive-foreground">{pending}</span>}
-            </button>
-            <button onClick={() => { setView("tickets"); setOpenId(null); }} className={`relative rounded-md py-1.5 ${view === "tickets" ? "bg-card font-semibold text-foreground" : ""}`}>
-              الدعم الفني
-              {openTickets > 0 && <span className="absolute -top-1 left-2 rounded-full bg-destructive px-1.5 text-[11px] font-bold text-destructive-foreground">{openTickets}</span>}
-            </button>
-            <button onClick={() => { setView("catalog"); setOpenId(null); }} className={`rounded-md py-1.5 ${view === "catalog" ? "bg-card font-semibold text-foreground" : ""}`}>الأصناف</button>
-          </div>
-          {view === "chats" && <div className="mt-3 grid grid-cols-5 gap-1.5">
-            {stats.map((s) => (
-              <button key={s.label} onClick={() => setFilter(filter === s.key ? "all" : s.key)}
-                className={`rounded-lg p-2 text-center transition-colors ${filter === s.key ? "bg-card text-foreground shadow" : "bg-primary-foreground/10 hover:bg-primary-foreground/20"}`}>
-                <div className="text-xl font-bold">{s.value}</div>
-                <div className="text-[10px] opacity-80">{s.label}</div>
+    <div dir="rtl" className="flex min-h-screen flex-col bg-background text-foreground">
+      <header className="relative overflow-hidden bg-ink px-4 py-4 text-ink-foreground md:px-8">
+        <div className="pointer-events-none absolute -top-10 left-1/3 h-40 w-2 rotate-[30deg] bg-primary/80" />
+        <div className="relative flex items-center justify-between gap-3">
+          <h1 className="flex items-center gap-2 text-lg font-bold md:text-2xl">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground"><MessageCircle className="h-5 w-5" /></span>
+            محادثات العملاء
+          </h1>
+          <img src={logo} alt="ACTES أكتس" className="h-9 w-auto rounded-md bg-card px-1 md:h-12" />
+        </div>
+      </header>
+
+      <div className="mx-auto w-full max-w-6xl flex-1 space-y-3 p-3 md:p-5">
+        <nav className="flex items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm">
+          <div className="grid flex-1 grid-cols-4 gap-1">
+            {tabs.map((t) => (
+              <button key={t.k} onClick={() => { setView(t.k); if (t.k !== "chats") setOpenId(null); }}
+                className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-xs font-semibold md:flex-row md:gap-2 md:py-3 md:text-base ${view === t.k ? "bg-primary text-primary-foreground shadow" : "hover:bg-muted"}`}>
+                <t.i className="h-5 w-5" />{t.l}
+                {t.n > 0 && <span className="absolute -top-1 left-1 rounded-full bg-destructive px-1.5 text-[11px] font-bold text-destructive-foreground">{t.n}</span>}
               </button>
             ))}
-          </div>}
-        </header>
-        {view === "orders" ? <Orders pw={pw} /> : view === "tickets" ? <Tickets pw={pw} /> : view === "catalog" ? <Catalog pw={pw} /> : <>
-        <div className="space-y-2 p-3">
+          </div>
+          <div className="flex shrink-0 items-center gap-1 border-r border-border pr-2">
+            <button onClick={toggleDark} aria-label={dark ? "الوضع الفاتح" : "الوضع الليلي"} className="rounded-md p-1.5 hover:bg-muted">
+              {dark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            </button>
+            <button onClick={() => { const m = !muted; setMuted(m); localStorage.setItem("actes_mute", m ? "1" : "0"); if (!m) playChime(); }}
+              aria-label={muted ? "تشغيل صوت التنبيه" : "كتم صوت التنبيه"} className="rounded-md p-1.5 hover:bg-muted">
+              {muted ? <BellOff className="h-5 w-5" /> : <Bell className="h-5 w-5" />}
+            </button>
+            <button onClick={onLogout} className="px-1 text-sm">خروج</button>
+          </div>
+        </nav>
+
+        {view === "orders" ? <div className="rounded-2xl border border-border bg-card"><Orders pw={pw} /></div>
+        : view === "tickets" ? <div className="rounded-2xl border border-border bg-card"><Tickets pw={pw} /></div>
+        : view === "catalog" ? <div className="rounded-2xl border border-border bg-card"><Catalog pw={pw} /></div> : <>
+        <div className="grid grid-cols-5 gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm md:gap-3 md:p-3">
+          {stats.map((s) => { const st = statStyle[s.key] ?? statStyle["all"]!; const Ic = st.icon; return (
+            <button key={s.label} onClick={() => setFilter(filter === s.key ? "all" : s.key)}
+              style={{ background: `linear-gradient(160deg, transparent 55%, color-mix(in oklch, var(--color-${st.c}) 14%, transparent))` }}
+              className={`flex flex-col items-center gap-1 rounded-xl border p-2 transition md:p-4 ${filter === s.key ? "border-primary ring-2 ring-primary/30" : "border-border"}`}>
+              <span style={{ background: `var(--color-${st.c})` }} className="flex h-9 w-9 items-center justify-center rounded-full text-primary-foreground md:h-14 md:w-14"><Ic className="h-4 w-4 md:h-7 md:w-7" /></span>
+              <span className="text-lg font-bold md:text-3xl">{s.value}</span>
+              <span className="text-[10px] font-medium md:text-sm">{s.label}</span>
+            </button>
+          ); })}
+        </div>
+
+        <div className="space-y-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
           <div className="flex flex-wrap gap-2">
-          <div className="relative min-w-[10rem] flex-1">
-            <Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث بالاسم أو الرقم"
-              className="w-full rounded-lg border border-input bg-card py-2 pl-3 pr-9 text-sm outline-none focus:ring-2 focus:ring-ring" />
+            <div className="relative min-w-[12rem] flex-[2]">
+              <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث بالاسم أو الرقم"
+                className="w-full rounded-xl border border-input bg-card py-2.5 pl-3 pr-9 text-sm outline-none focus:ring-2 focus:ring-ring" />
+            </div>
+            <select value={city} onChange={(e) => setCity(e.target.value)} aria-label="المدينة" className="flex-1 rounded-xl border border-input bg-card px-3 py-2.5 text-sm">
+              <option value="">كل المدن</option>
+              {cities.map((x) => <option key={x} value={x}>{x}</option>)}
+            </select>
+            <select value={sys} onChange={(e) => setSys(e.target.value)} aria-label="نوع المنظومة" className="flex-1 rounded-xl border border-input bg-card px-3 py-2.5 text-sm">
+              <option value="">كل الأنواع</option>
+              {(Object.keys(SYS) as SysT[]).map((k) => <option key={k} value={k}>{SYS[k]}</option>)}
+            </select>
+            <button onClick={() => exportCsv(shown, orders)} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">
+              <Download className="h-4 w-4" />تصدير Excel
+            </button>
           </div>
-          <select value={city} onChange={(e) => setCity(e.target.value)} aria-label="المدينة" className="rounded-lg border border-input bg-card px-2 py-2 text-sm">
-            <option value="">كل المدن</option>
-            {cities.map((x) => <option key={x} value={x}>{x}</option>)}
-          </select>
-          <select value={sys} onChange={(e) => setSys(e.target.value)} aria-label="نوع المنظومة" className="rounded-lg border border-input bg-card px-2 py-2 text-sm">
-            <option value="">كل الأنواع</option>
-            {(Object.keys(SYS) as SysT[]).map((k) => <option key={k} value={k}>{SYS[k]}</option>)}
-          </select>
-          <button onClick={() => exportCsv(shown, orders)} title="تصدير إلى Excel" className="flex items-center gap-1 rounded-lg border border-input bg-card px-3 py-2 text-sm hover:bg-muted">
-            <Download className="h-4 w-4" /><span className="hidden sm:inline">Excel</span>
-          </button>
-          </div>
-          <div className="flex gap-1.5 overflow-x-auto pb-1">
+          <div className="flex gap-2 overflow-x-auto pb-1">
             {(["all", ...Object.keys(STAGES)] as (Stage | "all")[]).map((s) => {
               const n = customers.filter((c) => c.unread > 0 && (s === "all" || c.stage === s)).length;
+              const Ic = s === "all" ? null : stageIcon[s];
               return (
               <button key={s} onClick={() => setFilter(s)}
-                className={`relative mt-2 shrink-0 rounded-full border px-3 py-1 text-xs ${filter === s ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}>
-                {s === "all" ? "الكل" : STAGES[s]}
+                className={`relative mt-2 flex shrink-0 items-center gap-1.5 rounded-xl px-4 py-2 text-sm ${filter === s ? "bg-primary font-semibold text-primary-foreground" : "bg-muted"}`}>
+                {Ic && <Ic className="h-4 w-4" />}{s === "all" ? "الكل" : STAGES[s]}
                 {n > 0 && <span className="absolute -top-2 -left-1 min-w-[18px] animate-pulse rounded-full bg-destructive px-1 text-[10px] font-bold leading-[18px] text-destructive-foreground">{n}</span>}
               </button>
             );})}
           </div>
-        </div>
-        <ul className="flex flex-1 flex-col overflow-y-auto">
-          {shown.map((c) => (
-            <li key={c.id}>
-              <button onClick={() => setOpenId(c.id)}
-                className={`flex w-full items-center gap-3 border-b border-border px-3 py-3 text-right hover:bg-muted ${openId === c.id ? "bg-muted" : ""}`}>
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary font-bold text-secondary-foreground">
-                  {(c.name ?? "#")[0]}
+          <ul className="overflow-hidden rounded-xl border border-border">
+            {shown.map((c) => (
+              <li key={c.id} className={`flex items-center gap-3 border-b border-border px-3 py-3 last:border-b-0 ${openId === c.id ? "bg-muted" : ""}`}>
+                <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                  <User className="h-6 w-6" /><span className="absolute bottom-0 left-0 h-3 w-3 rounded-full border-2 border-card bg-s-green" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="flex min-w-0 items-center gap-2"><span className="truncate font-semibold">{c.name || c.phone}</span>{c.stage !== "new" && <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${stageClass[c.stage] ?? stageClass["new"]}`}>{STAGES[c.stage as Stage] ?? c.stage}</span>}{sysType(c.system) && <span className="shrink-0 rounded-full border border-border px-1.5 py-0.5 text-[10px]">{SYS[sysType(c.system)!]}</span>}</span>
-                    <span className="shrink-0 text-[11px] text-muted-foreground">{fmt(c.last_at)}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="truncate font-bold">{c.name || c.phone}</span>
+                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${stageClass[c.stage] ?? stageClass["new"]}`}>{STAGES[c.stage as Stage] ?? c.stage}</span>
+                    {c.unread > 0 && <span className="rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">{c.unread}</span>}
                   </div>
-                  <div dir="ltr" className="text-right text-xs text-muted-foreground">+{c.phone.replace(/^\+/, "")}</div>
-                  <div className="mt-1 flex items-center justify-between gap-2">
-                    <span className="truncate text-xs text-muted-foreground">{c.last_message}</span>
-                    {c.unread > 0 && <span className="rounded-full bg-accent px-1.5 text-[11px] font-bold text-accent-foreground">{c.unread}</span>}
-                  </div>
+                  <div dir="ltr" className="text-right text-sm text-muted-foreground">+{c.phone.replace(/^\+/, "")}</div>
+                  <div className="truncate text-xs text-muted-foreground">{c.last_message}</div>
                 </div>
-              </button>
-            </li>
-          ))}
-          {!isLoading && shown.length === 0 && (
-            <li className="p-6 text-center text-sm text-muted-foreground">
-              {customers.length === 0 ? "لا توجد محادثات بعد — ستظهر هنا فور تواصل العملاء مع البوت" : "لا توجد نتائج"}
-            </li>
-          )}
-        </ul>
+                <span className="hidden shrink-0 text-sm text-muted-foreground sm:block">{fmt(c.last_at)}</span>
+                <button onClick={() => setOpenId(c.id)} className="flex shrink-0 items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-xs font-semibold text-ink-foreground md:px-4 md:text-sm">
+                  <MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">فتح المحادثة</span>
+                </button>
+              </li>
+            ))}
+            {!isLoading && shown.length === 0 && (
+              <li className="p-6 text-center text-sm text-muted-foreground">
+                {customers.length === 0 ? "لا توجد محادثات بعد — ستظهر هنا فور تواصل العملاء مع البوت" : "لا توجد نتائج"}
+              </li>
+            )}
+          </ul>
+        </div>
         </>}
-      </aside>
+      </div>
+      <footer className="bg-ink py-3 text-center text-sm font-semibold text-ink-foreground">ACTES — لأنظمة الطاقة وحلولها</footer>
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 md:p-6" onClick={() => setOpenId(null)}>
           <div className="flex h-full w-full overflow-hidden bg-background shadow-2xl md:h-[90vh] md:max-w-6xl md:rounded-2xl md:border md:border-border" onClick={(e) => e.stopPropagation()}>
