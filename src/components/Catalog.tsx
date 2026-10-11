@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Search, FileText, Save, Pencil, X, Plus, Trash2 } from "lucide-react";
+import { Search, FileText, Save, Pencil, X, Plus, Trash2, ChevronLeft } from "lucide-react";
 import { listCatalog, saveCatalogItem } from "@/lib/crm.functions";
 
 type Row = Awaited<ReturnType<typeof listCatalog>>[number];
@@ -10,14 +10,68 @@ function specsOf(r: Row): string[] {
   return Array.isArray(r.specs) ? (r.specs as unknown[]).map((s) => String(s)) : [];
 }
 
+function brandOf(r: Row): string {
+  const t = (r.key + " " + r.name + " " + (r.label ?? "")).toUpperCase();
+  if (/DEYE|دايا|دايما/.test(t)) return "Deye";
+  if (/SOLIS|سوليس|سولار/.test(t)) return "Solis";
+  if (/LIPOWER|LI POWER|ليو باور/.test(t)) return "Li Power";
+  if (/HITHIUM|HEROEE|هيثيوم/.test(t)) return "Hithium";
+  if (/PYLON|RV12|UF5000|FIDUS|بايلونتك/.test(t)) return "Pylontech";
+  if (/SUNTECH|سنتك/.test(t)) return "Suntech";
+  return "";
+}
+
+const DS_GROUPS: [string, string][] = [["inverters", "الإنفرترات"], ["panels", "الألواح الشمسية"], ["batteries", "البطاريات"]];
+function dsCategory(r: Row): string {
+  if (DS_GROUPS.some(([k]) => k === r.category)) return r.category;
+  const t = (r.key + " " + r.name).toUpperCase();
+  if (/INV|إنفرتر|انفرتر/.test(t)) return "inverters";
+  if (/PV|لوح|الواح|ألواح/.test(t)) return "panels";
+  return "batteries";
+}
+
+function Folder({ title, count, open, onToggle, level, children }: { title: string; count: number; open: boolean; onToggle: () => void; level: number; children: React.ReactNode }) {
+  return (
+    <div className={level ? "rounded-lg border bg-muted/40" : "rounded-xl border bg-card"}>
+      <button onClick={onToggle} className={`flex w-full items-center gap-2 p-3 text-right ${level ? "text-sm font-semibold" : "font-bold text-primary"}`}>
+        <ChevronLeft className={`h-4 w-4 transition-transform ${open ? "-rotate-90" : ""}`} />
+        <span className="flex-1">{title}</span>
+        <span className="rounded-full bg-muted px-2 text-xs text-muted-foreground">{count}</span>
+      </button>
+      {open && <div className="space-y-2 px-2 pb-2">{children}</div>}
+    </div>
+  );
+}
+
 export function Catalog({ pw }: { pw: string }) {
   const list = useServerFn(listCatalog);
   const { data: rows = [], refetch } = useQuery({ queryKey: ["catalog"], queryFn: () => list({ data: { pw } }) });
   const [tab, setTab] = useState<"item" | "datasheet">("item");
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Row | null>(null);
+  const [openSet, setOpenSet] = useState<Set<string>>(new Set());
   const shown = rows.filter((r) => r.kind === tab && (r.name.includes(q) || r.key.includes(q)));
-  const groups = [...new Set(shown.map((r) => r.category_title ?? r.category))];
+  const isOpen = (id: string) => !!q || openSet.has(id);
+  const toggle = (id: string) => setOpenSet((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const groups: { id: string; title: string; rows: Row[] }[] =
+    tab === "item"
+      ? [...new Set(shown.map((r) => r.category))].map((c) => ({ id: c, title: shown.find((r) => r.category === c)?.category_title ?? c, rows: shown.filter((r) => r.category === c) }))
+      : DS_GROUPS.map(([id, title]) => ({ id, title, rows: shown.filter((r) => dsCategory(r) === id) }));
+
+  const card = (r: Row) => (
+    <div key={r.key} className={`rounded-xl border bg-card p-3 ${r.active ? "" : "opacity-60"}`}>
+      <p className="text-sm font-medium">{r.name}</p>
+      <div className="mt-2 flex items-center gap-2 text-sm">
+        {r.kind === "item" && <span className="text-muted-foreground">${r.price ?? "-"} / {r.unit}</span>}
+        {r.kind === "datasheet" && r.pdf_url && <a href={r.pdf_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-primary"><FileText className="h-3.5 w-3.5" /> فتح</a>}
+        {!r.active && <span className="text-xs text-muted-foreground">(موقوف)</span>}
+        <button onClick={() => setEditing(r)} className="mr-auto flex items-center gap-1 rounded-md bg-primary px-3 py-1 text-xs text-primary-foreground">
+          <Pencil className="h-3.5 w-3.5" /> تعديل
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -31,27 +85,28 @@ export function Catalog({ pw }: { pw: string }) {
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="بحث عن صنف..." className="w-full rounded-lg border bg-card py-2 pl-3 pr-9 text-sm" />
         </div>
       </div>
-      <div className="flex-1 space-y-4 overflow-y-auto px-3 pb-6">
-        {groups.map((g) => (
-          <section key={g}>
-            {tab === "item" && <h2 className="mb-2 text-sm font-bold text-primary">{g}</h2>}
-            <div className="space-y-2">
-              {shown.filter((r) => (r.category_title ?? r.category) === g).map((r) => (
-                <div key={r.key} className={`rounded-xl border bg-card p-3 ${r.active ? "" : "opacity-60"}`}>
-                  <p className="text-sm font-medium">{r.name}</p>
-                  <div className="mt-2 flex items-center gap-2 text-sm">
-                    {r.kind === "item" && <span className="text-muted-foreground">${r.price ?? "-"} / {r.unit}</span>}
-                    {!r.active && <span className="text-xs text-muted-foreground">(موقوف)</span>}
-                    <button onClick={() => setEditing(r)} className="mr-auto flex items-center gap-1 rounded-md bg-primary px-3 py-1 text-xs text-primary-foreground">
-                      <Pencil className="h-3.5 w-3.5" /> تعديل
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
-        {!shown.length && <p className="py-10 text-center text-sm text-muted-foreground">لا توجد أصناف</p>}
+      <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-6">
+        {groups.map((g) => {
+          const brands = [...new Set(g.rows.map(brandOf))];
+          const id = tab + ":" + g.id;
+          return (
+            <Folder key={id} title={g.title} count={g.rows.length} open={isOpen(id)} onToggle={() => toggle(id)} level={0}>
+              {!g.rows.length && <p className="py-3 text-center text-xs text-muted-foreground">لا توجد كتالوجات</p>}
+              {brands.length <= 1
+                ? g.rows.map(card)
+                : brands.map((b) => {
+                    const br = g.rows.filter((r) => brandOf(r) === b);
+                    const bid = id + ":" + b;
+                    return (
+                      <Folder key={bid} title={b || "أخرى"} count={br.length} open={isOpen(bid)} onToggle={() => toggle(bid)} level={1}>
+                        {br.map(card)}
+                      </Folder>
+                    );
+                  })}
+            </Folder>
+          );
+        })}
+        {tab === "item" && !shown.length && <p className="py-10 text-center text-sm text-muted-foreground">لا توجد أصناف</p>}
       </div>
       {editing && <EditCard key={editing.key} r={editing} pw={pw} onClose={() => setEditing(null)} onSaved={() => { refetch(); setEditing(null); }} />}
     </div>
