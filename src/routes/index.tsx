@@ -30,7 +30,7 @@ import { listCustomers, getMessages, sendMessage, saveNote, setBotPaused } from 
 import { Orders, useOrders } from "@/components/Orders";
 import { Tickets, useTickets } from "@/components/Tickets";
 import { Catalog } from "@/components/Catalog";
-import logo from "@/assets/actes-logo.png";
+import logo from "@/assets/actes-logo.png.asset.json";
 import chatBg from "@/assets/actes-chat-bg.png";
 
 export const Route = createFileRoute("/")({
@@ -124,7 +124,7 @@ function Login({ onOk }: { onOk: (p: string) => void }) {
           finally { setBusy(false); }
         }}
       >
-        <div className="flex flex-col items-center gap-1 text-primary"><img src={logo} alt="ACTES أكتس" className="h-20 w-auto" /><h1 className="text-xl font-bold">محادثات العملاء</h1></div>
+        <div className="flex flex-col items-center gap-1 text-primary"><img src={logo.url} alt="ACTES أكتس" className="h-16 w-auto rounded-xl" /><h1 className="text-xl font-bold">محادثات العملاء</h1></div>
         <label className="block text-sm text-muted-foreground">كلمة مرور اللوحة</label>
         <div className="relative">
           <Lock className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -216,7 +216,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"><MessageCircle className="h-4 w-4" /></span>
             محادثات العملاء
           </h1>
-          <img src={logo} alt="ACTES أكتس" className="h-9 w-auto rounded-md bg-card px-1 md:h-11" />
+          <img src={logo.url} alt="ACTES أكتس" className="h-11 w-auto shrink-0 rounded-lg md:h-14" />
         </div>
       </header>
 
