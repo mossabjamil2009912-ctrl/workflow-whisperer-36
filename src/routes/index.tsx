@@ -29,8 +29,8 @@ import { STAGES, type Stage } from "@/lib/crm-data";
 import { listCustomers, getMessages, sendMessage, saveNote, setBotPaused } from "@/lib/crm.functions";
 import { Orders, useOrders } from "@/components/Orders";
 import { Tickets, useTickets } from "@/components/Tickets";
-import logo from "@/assets/actes-logo.png.asset.json";
-import chatBg from "@/assets/actes-chat-bg.png.asset.json";
+import logo from "@/assets/actes-logo.png";
+import chatBg from "@/assets/actes-chat-bg.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
