@@ -227,6 +227,7 @@ export const saveCatalogItem = createServerFn({ method: "POST" })
     unit: z.string().max(50).nullable(),
     pdf_url: z.string().url().max(1000).nullable().or(z.literal("").transform(() => null)),
     active: z.boolean(),
+    specs: z.array(z.string().max(1000)).max(200).optional(),
   }).parse(d))
   .handler(async ({ data }) => {
     check(data.pw);

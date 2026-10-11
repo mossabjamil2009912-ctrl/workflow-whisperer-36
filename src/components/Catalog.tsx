@@ -1,16 +1,21 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Search, FileText, Save } from "lucide-react";
+import { Search, FileText, Save, Pencil, X, Plus, Trash2 } from "lucide-react";
 import { listCatalog, saveCatalogItem } from "@/lib/crm.functions";
 
 type Row = Awaited<ReturnType<typeof listCatalog>>[number];
+
+function specsOf(r: Row): string[] {
+  return Array.isArray(r.specs) ? (r.specs as unknown[]).map((s) => String(s)) : [];
+}
 
 export function Catalog({ pw }: { pw: string }) {
   const list = useServerFn(listCatalog);
   const { data: rows = [], refetch } = useQuery({ queryKey: ["catalog"], queryFn: () => list({ data: { pw } }) });
   const [tab, setTab] = useState<"item" | "datasheet">("item");
   const [q, setQ] = useState("");
+  const [editing, setEditing] = useState<Row | null>(null);
   const shown = rows.filter((r) => r.kind === tab && (r.name.includes(q) || r.key.includes(q)));
   const groups = [...new Set(shown.map((r) => r.category_title ?? r.category))];
 
@@ -31,58 +36,91 @@ export function Catalog({ pw }: { pw: string }) {
           <section key={g}>
             {tab === "item" && <h2 className="mb-2 text-sm font-bold text-primary">{g}</h2>}
             <div className="space-y-2">
-              {shown.filter((r) => (r.category_title ?? r.category) === g).map((r) => <ItemRow key={r.key} r={r} pw={pw} onSaved={() => refetch()} />)}
+              {shown.filter((r) => (r.category_title ?? r.category) === g).map((r) => (
+                <div key={r.key} className={`rounded-xl border bg-card p-3 ${r.active ? "" : "opacity-60"}`}>
+                  <p className="text-sm font-medium">{r.name}</p>
+                  <div className="mt-2 flex items-center gap-2 text-sm">
+                    {r.kind === "item" && <span className="text-muted-foreground">${r.price ?? "-"} / {r.unit}</span>}
+                    {!r.active && <span className="text-xs text-muted-foreground">(موقوف)</span>}
+                    <button onClick={() => setEditing(r)} className="mr-auto flex items-center gap-1 rounded-md bg-primary px-3 py-1 text-xs text-primary-foreground">
+                      <Pencil className="h-3.5 w-3.5" /> تعديل
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         ))}
         {!shown.length && <p className="py-10 text-center text-sm text-muted-foreground">لا توجد أصناف</p>}
       </div>
+      {editing && <EditCard key={editing.key} r={editing} pw={pw} onClose={() => setEditing(null)} onSaved={() => { refetch(); setEditing(null); }} />}
     </div>
   );
 }
 
-function ItemRow({ r, pw, onSaved }: { r: Row; pw: string; onSaved: () => void }) {
+function EditCard({ r, pw, onClose, onSaved }: { r: Row; pw: string; onClose: () => void; onSaved: () => void }) {
   const save = useServerFn(saveCatalogItem);
   const [name, setName] = useState(r.name);
   const [price, setPrice] = useState(r.price == null ? "" : String(r.price));
+  const [unit, setUnit] = useState(r.unit ?? "");
   const [pdf, setPdf] = useState(r.pdf_url ?? "");
   const [active, setActive] = useState(r.active);
+  const [specs, setSpecs] = useState<string[]>(specsOf(r));
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
-  const dirty = name !== r.name || price !== (r.price == null ? "" : String(r.price)) || pdf !== (r.pdf_url ?? "") || active !== r.active;
 
   async function submit() {
     setBusy(true); setMsg("");
     try {
-      await save({ data: { pw, key: r.key, name, unit: r.unit, price: price === "" ? null : Number(price), pdf_url: pdf, active } });
-      setMsg("تم الحفظ ✓"); onSaved();
-    } catch (e) { setMsg(e instanceof Error ? e.message : "خطأ"); }
-    finally { setBusy(false); }
+      await save({ data: { pw, key: r.key, name, unit: unit || null, price: price === "" ? null : Number(price), pdf_url: pdf, active, specs: specs.map((s) => s.trim()).filter(Boolean) } });
+      onSaved();
+    } catch (e) { setMsg(e instanceof Error ? e.message : "خطأ"); setBusy(false); }
   }
 
   return (
-    <div className={`rounded-xl border bg-card p-3 ${active ? "" : "opacity-60"}`}>
-      <textarea value={name} onChange={(e) => setName(e.target.value)} rows={2} className="w-full resize-none rounded-md bg-transparent text-sm font-medium outline-none focus:bg-muted" />
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        {r.kind === "item" ? (
-          <label className="flex items-center gap-1 text-sm">
-            <span className="text-muted-foreground">السعر $</span>
-            <input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="w-24 rounded-md border bg-background px-2 py-1" />
-            <span className="text-xs text-muted-foreground">/ {r.unit}</span>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 sm:items-center" onClick={onClose}>
+      <div className="flex max-h-[92vh] w-full max-w-lg flex-col rounded-t-2xl border bg-card sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2 border-b p-3">
+          <button onClick={submit} disabled={busy} className="flex items-center gap-1 rounded-md bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+            <Save className="h-4 w-4" /> {busy ? "جارٍ الحفظ..." : "حفظ"}
+          </button>
+          <span className="flex-1 truncate text-sm font-bold">تعديل الصنف</span>
+          <button onClick={onClose} aria-label="إغلاق" className="rounded-md p-1 hover:bg-muted"><X className="h-5 w-5" /></button>
+        </div>
+        {msg && <p className="px-3 pt-2 text-xs text-destructive">{msg}</p>}
+        <div className="flex-1 space-y-3 overflow-y-auto p-3">
+          <label className="block text-xs text-muted-foreground">اسم الصنف
+            <textarea value={name} onChange={(e) => setName(e.target.value)} rows={3} className="mt-1 w-full rounded-md border bg-background p-2 text-sm text-foreground" />
           </label>
-        ) : (
-          <div className="flex w-full items-center gap-1">
-            <FileText className="h-4 w-4 shrink-0 text-primary" />
-            <input value={pdf} onChange={(e) => setPdf(e.target.value)} placeholder="رابط PDF" dir="ltr" className="flex-1 rounded-md border bg-background px-2 py-1 text-xs" />
-            {r.pdf_url && <a href={r.pdf_url} target="_blank" rel="noreferrer" className="text-xs text-primary underline">فتح</a>}
+          {r.kind === "item" ? (
+            <div className="flex gap-2">
+              <label className="flex-1 text-xs text-muted-foreground">السعر $
+                <input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1 w-full rounded-md border bg-background px-2 py-1.5 text-sm text-foreground" />
+              </label>
+              <label className="flex-1 text-xs text-muted-foreground">الوحدة
+                <input value={unit} onChange={(e) => setUnit(e.target.value)} className="mt-1 w-full rounded-md border bg-background px-2 py-1.5 text-sm text-foreground" />
+              </label>
+            </div>
+          ) : (
+            <label className="block text-xs text-muted-foreground"><FileText className="inline h-3.5 w-3.5" /> رابط PDF
+              <input value={pdf} onChange={(e) => setPdf(e.target.value)} dir="ltr" className="mt-1 w-full rounded-md border bg-background px-2 py-1.5 text-xs text-foreground" />
+            </label>
+          )}
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} /> مفعّل</label>
+          <div>
+            <p className="mb-1 text-xs text-muted-foreground">المواصفات</p>
+            <div className="space-y-1.5">
+              {specs.map((s, i) => (
+                <div key={i} className="flex gap-1">
+                  <textarea value={s} rows={Math.max(1, Math.ceil(s.length / 40))} onChange={(e) => setSpecs(specs.map((x, j) => (j === i ? e.target.value : x)))} className="flex-1 resize-none rounded-md border bg-background p-1.5 text-sm" />
+                  <button onClick={() => setSpecs(specs.filter((_, j) => j !== i))} aria-label="حذف" className="rounded-md p-1 text-destructive hover:bg-muted"><Trash2 className="h-4 w-4" /></button>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setSpecs([...specs, ""])} className="mt-2 flex items-center gap-1 rounded-md border px-3 py-1 text-xs"><Plus className="h-3.5 w-3.5" /> إضافة سطر</button>
           </div>
-        )}
-        <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} /> مفعّل</label>
-        <button disabled={!dirty || busy} onClick={submit} className="mr-auto flex items-center gap-1 rounded-md bg-primary px-3 py-1 text-xs text-primary-foreground disabled:opacity-40">
-          <Save className="h-3.5 w-3.5" /> حفظ
-        </button>
+        </div>
       </div>
-      {msg && <p className="mt-1 text-xs text-muted-foreground">{msg}</p>}
     </div>
   );
 }
