@@ -227,13 +227,14 @@ export const saveCatalogItem = createServerFn({ method: "POST" })
     unit: z.string().max(50).nullable(),
     pdf_url: z.string().url().max(1000).nullable().or(z.literal("").transform(() => null)),
     active: z.boolean(),
+    specs: z.array(z.string().max(1000)).max(200).optional(),
   }).parse(d))
   .handler(async ({ data }) => {
     check(data.pw);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { pw: _pw, key, ...rest } = data;
+    const { pw: _pw, key, specs, ...rest } = data;
     const { error } = await supabaseAdmin.from("catalog_items")
-      .update({ ...rest, updated_at: new Date().toISOString() }).eq("key", key);
+      .update({ ...rest, ...(specs ? { specs } : {}), updated_at: new Date().toISOString() }).eq("key", key);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
