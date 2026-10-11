@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicBotCatalogRouteImport } from './routes/api/public/bot-catalog'
 import { Route as ApiPublicBotDiagnoseRouteImport } from './routes/api/public/bot-diagnose'
 import { Route as ApiPublicBotMessageRouteImport } from './routes/api/public/bot-message'
 import { Route as ApiPublicBotOrderRouteImport } from './routes/api/public/bot-order'
@@ -20,6 +21,11 @@ import { Route as ApiPublicBotTicketRouteImport } from './routes/api/public/bot-
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicBotCatalogRoute = ApiPublicBotCatalogRouteImport.update({
+  id: '/api/public/bot-catalog',
+  path: '/api/public/bot-catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicBotDiagnoseRoute = ApiPublicBotDiagnoseRouteImport.update({
@@ -55,6 +61,7 @@ const ApiPublicBotTicketRoute = ApiPublicBotTicketRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/public/bot-catalog': typeof ApiPublicBotCatalogRoute
   '/api/public/bot-diagnose': typeof ApiPublicBotDiagnoseRoute
   '/api/public/bot-message': typeof ApiPublicBotMessageRoute
   '/api/public/bot-order': typeof ApiPublicBotOrderRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/public/bot-catalog': typeof ApiPublicBotCatalogRoute
   '/api/public/bot-diagnose': typeof ApiPublicBotDiagnoseRoute
   '/api/public/bot-message': typeof ApiPublicBotMessageRoute
   '/api/public/bot-order': typeof ApiPublicBotOrderRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/public/bot-catalog': typeof ApiPublicBotCatalogRoute
   '/api/public/bot-diagnose': typeof ApiPublicBotDiagnoseRoute
   '/api/public/bot-message': typeof ApiPublicBotMessageRoute
   '/api/public/bot-order': typeof ApiPublicBotOrderRoute
@@ -85,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/api/public/bot-catalog'
     | '/api/public/bot-diagnose'
     | '/api/public/bot-message'
     | '/api/public/bot-order'
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/api/public/bot-catalog'
     | '/api/public/bot-diagnose'
     | '/api/public/bot-message'
     | '/api/public/bot-order'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/api/public/bot-catalog'
     | '/api/public/bot-diagnose'
     | '/api/public/bot-message'
     | '/api/public/bot-order'
@@ -113,6 +125,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiPublicBotCatalogRoute: typeof ApiPublicBotCatalogRoute
   ApiPublicBotDiagnoseRoute: typeof ApiPublicBotDiagnoseRoute
   ApiPublicBotMessageRoute: typeof ApiPublicBotMessageRoute
   ApiPublicBotOrderRoute: typeof ApiPublicBotOrderRoute
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/bot-catalog': {
+      id: '/api/public/bot-catalog'
+      path: '/api/public/bot-catalog'
+      fullPath: '/api/public/bot-catalog'
+      preLoaderRoute: typeof ApiPublicBotCatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/bot-diagnose': {
@@ -177,6 +197,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiPublicBotCatalogRoute: ApiPublicBotCatalogRoute,
   ApiPublicBotDiagnoseRoute: ApiPublicBotDiagnoseRoute,
   ApiPublicBotMessageRoute: ApiPublicBotMessageRoute,
   ApiPublicBotOrderRoute: ApiPublicBotOrderRoute,

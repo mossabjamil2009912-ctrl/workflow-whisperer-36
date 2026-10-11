@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      catalog_items: {
+        Row: {
+          active: boolean
+          category: string
+          category_title: string | null
+          key: string
+          kind: string
+          label: string | null
+          name: string
+          pdf_url: string | null
+          price: number | null
+          sort: number
+          specs: Json
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          category_title?: string | null
+          key: string
+          kind?: string
+          label?: string | null
+          name: string
+          pdf_url?: string | null
+          price?: number | null
+          sort?: number
+          specs?: Json
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          category_title?: string | null
+          key?: string
+          kind?: string
+          label?: string | null
+          name?: string
+          pdf_url?: string | null
+          price?: number | null
+          sort?: number
+          specs?: Json
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           bot_paused: boolean
