@@ -208,54 +208,56 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
 
   return (
     <div dir="rtl" className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="relative overflow-hidden bg-ink px-4 py-4 text-ink-foreground md:px-8">
-        <div className="pointer-events-none absolute -top-10 left-1/3 h-40 w-2 rotate-[30deg] bg-primary/80" />
-        <div className="relative flex items-center justify-between gap-3">
-          <h1 className="flex items-center gap-2 text-lg font-bold md:text-2xl">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground"><MessageCircle className="h-5 w-5" /></span>
+      <header className="relative overflow-hidden bg-ink px-4 py-3 text-ink-foreground md:px-8">
+        <div className="pointer-events-none absolute -top-10 left-[30%] h-40 w-1.5 rotate-[35deg] bg-primary" />
+        <div className="pointer-events-none absolute -top-10 left-[31.5%] h-40 w-px rotate-[35deg] bg-primary/50" />
+        <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-3">
+          <h1 className="flex items-center gap-2 text-base font-bold md:text-xl">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"><MessageCircle className="h-4 w-4" /></span>
             محادثات العملاء
           </h1>
-          <img src={logo} alt="ACTES أكتس" className="h-9 w-auto rounded-md bg-card px-1 md:h-12" />
+          <img src={logo} alt="ACTES أكتس" className="h-9 w-auto rounded-md bg-card px-1 md:h-11" />
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-6xl flex-1 space-y-3 p-3 md:p-5">
-        <nav className="flex items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm">
+      <div className="mx-auto w-full max-w-6xl flex-1 space-y-3 p-3 md:p-4">
+        <nav className="flex items-center gap-2 rounded-xl border border-border bg-card p-1.5 shadow-sm">
           <div className="grid flex-1 grid-cols-4 gap-1">
             {tabs.map((t) => (
               <button key={t.k} onClick={() => { setView(t.k); if (t.k !== "chats") setOpenId(null); }}
-                className={`relative flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-xs font-semibold md:flex-row md:gap-2 md:py-3 md:text-base ${view === t.k ? "bg-primary text-primary-foreground shadow" : "hover:bg-muted"}`}>
-                <t.i className="h-5 w-5" />{t.l}
-                {t.n > 0 && <span className="absolute -top-1 left-1 rounded-full bg-destructive px-1.5 text-[11px] font-bold text-destructive-foreground">{t.n}</span>}
+                className={`relative flex flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold md:flex-row md:gap-2 md:py-2.5 md:text-sm ${view === t.k ? "bg-primary text-primary-foreground shadow" : "hover:bg-muted"}`}>
+                <t.i className="h-4 w-4" />{t.l}
+                {t.n > 0 && <span className="absolute -top-1 left-1 rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">{t.n}</span>}
               </button>
             ))}
           </div>
           <div className="flex shrink-0 items-center gap-1 border-r border-border pr-2">
             <button onClick={toggleDark} aria-label={dark ? "الوضع الفاتح" : "الوضع الليلي"} className="rounded-md p-1.5 hover:bg-muted">
-              {dark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+              {dark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </button>
             <button onClick={() => { const m = !muted; setMuted(m); localStorage.setItem("actes_mute", m ? "1" : "0"); if (!m) playChime(); }}
               aria-label={muted ? "تشغيل صوت التنبيه" : "كتم صوت التنبيه"} className="rounded-md p-1.5 hover:bg-muted">
-              {muted ? <BellOff className="h-5 w-5" /> : <Bell className="h-5 w-5" />}
+              {muted ? <BellOff className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
             </button>
-            <button onClick={onLogout} className="px-1 text-sm">خروج</button>
+            <button onClick={onLogout} className="px-1 text-xs md:text-sm">خروج</button>
           </div>
         </nav>
 
-        {view === "orders" ? <div className="rounded-2xl border border-border bg-card"><Orders pw={pw} /></div>
-        : view === "tickets" ? <div className="rounded-2xl border border-border bg-card"><Tickets pw={pw} /></div>
-        : view === "catalog" ? <div className="rounded-2xl border border-border bg-card"><Catalog pw={pw} /></div> : <>
-        <div className="grid grid-cols-5 gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm md:gap-3 md:p-3">
+        {view === "orders" ? <div className="rounded-xl border border-border bg-card"><Orders pw={pw} /></div>
+        : view === "tickets" ? <div className="rounded-xl border border-border bg-card"><Tickets pw={pw} /></div>
+        : view === "catalog" ? <div className="rounded-xl border border-border bg-card"><Catalog pw={pw} /></div> : <>
+        <div className="grid grid-cols-5 gap-2 rounded-xl border border-border bg-card p-2 shadow-sm md:gap-3 md:p-2.5">
           {stats.map((s) => { const st = statStyle[s.key] ?? statStyle["all"]!; const Ic = st.icon; return (
             <button key={s.label} onClick={() => setFilter(filter === s.key ? "all" : s.key)}
-              style={{ background: `linear-gradient(160deg, transparent 55%, color-mix(in oklch, var(--color-${st.c}) 14%, transparent))` }}
-              className={`flex flex-col items-center gap-1 rounded-xl border p-2 transition md:p-4 ${filter === s.key ? "border-primary ring-2 ring-primary/30" : "border-border"}`}>
-              <span style={{ background: `var(--color-${st.c})` }} className="flex h-9 w-9 items-center justify-center rounded-full text-primary-foreground md:h-14 md:w-14"><Ic className="h-4 w-4 md:h-7 md:w-7" /></span>
-              <span className="text-lg font-bold md:text-3xl">{s.value}</span>
+              style={{ background: `linear-gradient(165deg, transparent 50%, color-mix(in oklch, var(--color-${st.c}) 16%, transparent))` }}
+              className={`flex flex-col items-center gap-0.5 rounded-lg border p-2 transition md:py-3 ${filter === s.key ? "border-primary ring-2 ring-primary/30" : "border-border"}`}>
+              <span style={{ background: `var(--color-${st.c})` }} className="flex h-8 w-8 items-center justify-center rounded-full text-primary-foreground md:h-11 md:w-11"><Ic className="h-4 w-4 md:h-5 md:w-5" /></span>
+              <span className="text-base font-bold md:text-2xl">{s.value}</span>
               <span className="text-[10px] font-medium md:text-sm">{s.label}</span>
             </button>
           ); })}
         </div>
+
 
         <div className="space-y-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
           <div className="flex flex-wrap gap-2">
