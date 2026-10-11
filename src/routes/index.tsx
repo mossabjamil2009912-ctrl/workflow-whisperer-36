@@ -123,7 +123,7 @@ function Login({ onOk }: { onOk: (p: string) => void }) {
           finally { setBusy(false); }
         }}
       >
-        <div className="flex flex-col items-center gap-1 text-primary"><img src={logo.url} alt="ACTES أكتس" className="h-20 w-auto" /><h1 className="text-xl font-bold">محادثات العملاء</h1></div>
+        <div className="flex flex-col items-center gap-1 text-primary"><img src={logo} alt="ACTES أكتس" className="h-20 w-auto" /><h1 className="text-xl font-bold">محادثات العملاء</h1></div>
         <label className="block text-sm text-muted-foreground">كلمة مرور اللوحة</label>
         <div className="relative">
           <Lock className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -198,7 +198,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
       <aside className="flex w-full flex-col">
         <header className="bg-primary px-4 pb-4 pt-5 text-primary-foreground">
           <div className="flex items-center gap-2">
-            <img src={logo.url} alt="ACTES أكتس" className="h-9 w-auto rounded-md bg-card px-1" />
+            <img src={logo} alt="ACTES أكتس" className="h-9 w-auto rounded-md bg-card px-1" />
             <h1 className="flex-1 text-lg font-bold">محادثات العملاء</h1>
             <button onClick={toggleDark} aria-label={dark ? "الوضع الفاتح" : "الوضع الليلي"} title={dark ? "الوضع الفاتح" : "الوضع الليلي"}
               className="rounded-md p-1.5 hover:bg-primary-foreground/10">
@@ -415,7 +415,7 @@ function Chat({ pw, c, onBack }: { pw: string; c: Cust; onBack: () => void }) {
       {paused && <div className="bg-destructive px-3 py-1.5 text-center text-xs text-destructive-foreground">البوت متوقف لهذا العميل — أنت تتحدث معه مباشرة</div>}
       {c.system && <div className="flex items-center gap-2 bg-secondary px-3 py-2 text-xs text-secondary-foreground"><Sun className="h-4 w-4" />{c.system}</div>}
       <div className="flex-1 space-y-2 overflow-y-auto bg-chat-bg bg-cover bg-center bg-no-repeat p-3 bg-blend-overlay dark:bg-blend-multiply"
-        style={{ backgroundImage: `url(${chatBg.url})` }}>
+        style={{ backgroundImage: `url(${chatBg})` }}>
         {msgs.map((m, i) => (
           <div key={m.id}>
           {(i === 0 || new Date(msgs[i - 1]!.created_at).toDateString() !== new Date(m.created_at).toDateString()) && (
