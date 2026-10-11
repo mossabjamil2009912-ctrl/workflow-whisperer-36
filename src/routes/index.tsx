@@ -259,22 +259,22 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
         </div>
 
 
-        <div className="space-y-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
+        <div className="space-y-2.5 rounded-xl border border-border bg-card p-2.5 shadow-sm">
           <div className="flex flex-wrap gap-2">
             <div className="relative min-w-[12rem] flex-[2]">
-              <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث بالاسم أو الرقم"
-                className="w-full rounded-xl border border-input bg-card py-2.5 pl-3 pr-9 text-sm outline-none focus:ring-2 focus:ring-ring" />
+                className="w-full rounded-lg border border-input bg-card py-2 pl-3 pr-9 text-sm outline-none focus:ring-2 focus:ring-ring" />
             </div>
-            <select value={city} onChange={(e) => setCity(e.target.value)} aria-label="المدينة" className="flex-1 rounded-xl border border-input bg-card px-3 py-2.5 text-sm">
+            <select value={city} onChange={(e) => setCity(e.target.value)} aria-label="المدينة" className="flex-1 rounded-lg border border-input bg-card px-3 py-2 text-sm">
               <option value="">كل المدن</option>
               {cities.map((x) => <option key={x} value={x}>{x}</option>)}
             </select>
-            <select value={sys} onChange={(e) => setSys(e.target.value)} aria-label="نوع المنظومة" className="flex-1 rounded-xl border border-input bg-card px-3 py-2.5 text-sm">
+            <select value={sys} onChange={(e) => setSys(e.target.value)} aria-label="نوع المنظومة" className="flex-1 rounded-lg border border-input bg-card px-3 py-2 text-sm">
               <option value="">كل الأنواع</option>
               {(Object.keys(SYS) as SysT[]).map((k) => <option key={k} value={k}>{SYS[k]}</option>)}
             </select>
-            <button onClick={() => exportCsv(shown, orders)} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">
+            <button onClick={() => exportCsv(shown, orders)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
               <Download className="h-4 w-4" />تصدير Excel
             </button>
           </div>
@@ -284,29 +284,30 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
               const Ic = s === "all" ? null : stageIcon[s];
               return (
               <button key={s} onClick={() => setFilter(s)}
-                className={`relative mt-2 flex shrink-0 items-center gap-1.5 rounded-xl px-4 py-2 text-sm ${filter === s ? "bg-primary font-semibold text-primary-foreground" : "bg-muted"}`}>
+                className={`relative mt-2 flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs md:text-sm ${filter === s ? "bg-primary font-semibold text-primary-foreground" : s === "all" ? "bg-muted" : (stageClass[s] ?? "bg-muted")}`}>
                 {Ic && <Ic className="h-4 w-4" />}{s === "all" ? "الكل" : STAGES[s]}
                 {n > 0 && <span className="absolute -top-2 -left-1 min-w-[18px] animate-pulse rounded-full bg-destructive px-1 text-[10px] font-bold leading-[18px] text-destructive-foreground">{n}</span>}
               </button>
             );})}
           </div>
-          <ul className="overflow-hidden rounded-xl border border-border">
+          <ul className="overflow-hidden rounded-lg border border-border">
             {shown.map((c) => (
-              <li key={c.id} className={`flex items-center gap-3 border-b border-border px-3 py-3 last:border-b-0 ${openId === c.id ? "bg-muted" : ""}`}>
-                <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                  <User className="h-6 w-6" /><span className="absolute bottom-0 left-0 h-3 w-3 rounded-full border-2 border-card bg-s-green" />
+              <li key={c.id} className={`flex items-center gap-3 border-b border-border px-3 py-2.5 last:border-b-0 ${openId === c.id ? "bg-muted" : ""}`}>
+                <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                  <User className="h-5 w-5" /><span className="absolute bottom-0 left-0 h-2.5 w-2.5 rounded-full border-2 border-card bg-s-green" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate font-bold">{c.name || c.phone}</span>
-                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${stageClass[c.stage] ?? stageClass["new"]}`}>{STAGES[c.stage as Stage] ?? c.stage}</span>
-                    {c.unread > 0 && <span className="rounded-full bg-primary px-1.5 text-[11px] font-bold text-primary-foreground">{c.unread}</span>}
+                <div className="min-w-0 w-40 shrink-0 md:w-52">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-sm font-bold">{c.name || c.phone}</span>
+                    {c.unread > 0 && <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">{c.unread}</span>}
                   </div>
-                  <div dir="ltr" className="text-right text-sm text-muted-foreground">+{c.phone.replace(/^\+/, "")}</div>
-                  <div className="truncate text-xs text-muted-foreground">{c.last_message}</div>
+                  <div dir="ltr" className="text-right text-xs text-muted-foreground">+{c.phone.replace(/^\+/, "")}</div>
+                  {c.system && <div className="truncate text-[11px] text-muted-foreground">{c.system}</div>}
                 </div>
-                <span className="hidden shrink-0 text-sm text-muted-foreground sm:block">{fmt(c.last_at)}</span>
-                <button onClick={() => setOpenId(c.id)} className="flex shrink-0 items-center gap-1.5 rounded-xl bg-ink px-3 py-2 text-xs font-semibold text-ink-foreground md:px-4 md:text-sm">
+                <span className={`hidden shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium sm:inline ${stageClass[c.stage] ?? stageClass["new"]}`}>{STAGES[c.stage as Stage] ?? c.stage}</span>
+                <div className="line-clamp-2 min-w-0 flex-1 text-xs text-muted-foreground">{c.last_message}</div>
+                <span className="hidden shrink-0 text-xs text-muted-foreground sm:block">{fmt(c.last_at)}</span>
+                <button onClick={() => setOpenId(c.id)} className="flex shrink-0 items-center gap-1.5 rounded-lg bg-ink px-3 py-2 text-xs font-semibold text-ink-foreground md:px-4">
                   <MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">فتح المحادثة</span>
                 </button>
               </li>
@@ -320,7 +321,13 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
         </div>
         </>}
       </div>
-      <footer className="bg-ink py-3 text-center text-sm font-semibold text-ink-foreground">ACTES — لأنظمة الطاقة وحلولها</footer>
+      <footer className="relative overflow-hidden bg-ink py-2.5 text-center text-xs font-semibold text-ink-foreground">
+        <div className="pointer-events-none absolute -bottom-6 right-[8%] h-16 w-1.5 rotate-[35deg] bg-primary" />
+        ACTES — لأنظمة الطاقة وحلولها
+        <span className="absolute left-6 top-1/2 hidden h-px w-32 -translate-y-1/2 bg-ink-foreground/30 md:block" />
+        <span className="absolute left-[9.5rem] top-1/2 hidden -translate-y-1/2 text-primary md:block">⌁</span>
+      </footer>
+
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 md:p-6" onClick={() => setOpenId(null)}>
           <div className="flex h-full w-full overflow-hidden bg-background shadow-2xl md:h-[90vh] md:max-w-6xl md:rounded-2xl md:border md:border-border" onClick={(e) => e.stopPropagation()}>
