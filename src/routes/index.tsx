@@ -29,6 +29,7 @@ import { STAGES, type Stage } from "@/lib/crm-data";
 import { listCustomers, getMessages, sendMessage, saveNote, setBotPaused } from "@/lib/crm.functions";
 import { Orders, useOrders } from "@/components/Orders";
 import { Tickets, useTickets } from "@/components/Tickets";
+import { Catalog } from "@/components/Catalog";
 import logo from "@/assets/actes-logo.png";
 import chatBg from "@/assets/actes-chat-bg.png";
 
@@ -148,7 +149,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<Stage | "all">("all");
   const [openId, setOpenId] = useState<string | null>(null);
-  const [view, setView] = useState<"chats" | "orders" | "tickets">("chats");
+  const [view, setView] = useState<"chats" | "orders" | "tickets" | "catalog">("chats");
   const { data: tickets = [] } = useTickets(pw);
   const openTickets = tickets.filter((t) => t.status === "open").length;
   const { data: orders = [] } = useOrders(pw);
@@ -213,7 +214,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
             </button>
             <button onClick={onLogout} className="text-xs opacity-80">خروج</button>
           </div>
-          <div className="mt-3 grid grid-cols-3 gap-1 rounded-lg bg-primary-foreground/10 p-1 text-sm">
+          <div className="mt-3 grid grid-cols-4 gap-1 rounded-lg bg-primary-foreground/10 p-1 text-sm">
             <button onClick={() => setView("chats")} className={`rounded-md py-1.5 ${view === "chats" ? "bg-card font-semibold text-foreground" : ""}`}>المحادثات</button>
             <button onClick={() => { setView("orders"); setOpenId(null); }} className={`relative rounded-md py-1.5 ${view === "orders" ? "bg-card font-semibold text-foreground" : ""}`}>
               الطلبات
@@ -223,6 +224,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
               الدعم الفني
               {openTickets > 0 && <span className="absolute -top-1 left-2 rounded-full bg-destructive px-1.5 text-[11px] font-bold text-destructive-foreground">{openTickets}</span>}
             </button>
+            <button onClick={() => { setView("catalog"); setOpenId(null); }} className={`rounded-md py-1.5 ${view === "catalog" ? "bg-card font-semibold text-foreground" : ""}`}>الأصناف</button>
           </div>
           {view === "chats" && <div className="mt-3 grid grid-cols-5 gap-1.5">
             {stats.map((s) => (
@@ -234,7 +236,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
             ))}
           </div>}
         </header>
-        {view === "orders" ? <Orders pw={pw} /> : view === "tickets" ? <Tickets pw={pw} /> : <>
+        {view === "orders" ? <Orders pw={pw} /> : view === "tickets" ? <Tickets pw={pw} /> : view === "catalog" ? <Catalog pw={pw} /> : <>
         <div className="space-y-2 p-3">
           <div className="flex flex-wrap gap-2">
           <div className="relative min-w-[10rem] flex-1">

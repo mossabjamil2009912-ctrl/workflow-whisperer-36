@@ -207,3 +207,33 @@ export const replyTicket = createServerFn({ method: "POST" })
     if (t.status === "open") await supabaseAdmin.from("support_tickets").update({ status: "in_progress" }).eq("id", data.id);
     return { ok: true };
   });
+
+export const listCatalog = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ pw: z.string() }).parse(d))
+  .handler(async ({ data }) => {
+    check(data.pw);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin.from("catalog_items").select("*").order("sort");
+    if (error) throw new Error(error.message);
+    return rows;
+  });
+
+export const saveCatalogItem = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({
+    pw: z.string(),
+    key: z.string().trim().min(1).max(100),
+    name: z.string().trim().min(1).max(500),
+    price: z.number().nonnegative().nullable(),
+    unit: z.string().max(50).nullable(),
+    pdf_url: z.string().url().max(1000).nullable().or(z.literal("").transform(() => null)),
+    active: z.boolean(),
+  }).parse(d))
+  .handler(async ({ data }) => {
+    check(data.pw);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { pw: _pw, key, ...rest } = data;
+    const { error } = await supabaseAdmin.from("catalog_items")
+      .update({ ...rest, updated_at: new Date().toISOString() }).eq("key", key);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
