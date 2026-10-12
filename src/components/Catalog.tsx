@@ -100,7 +100,8 @@ export function Catalog({ pw }: { pw: string }) {
       </div>
       <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-6">
         {groups.map((g) => {
-          const brands = [...new Set(g.rows.map(brandOf))].sort((a, b) => brandRank(a) - brandRank(b));
+          const base = g.id === "racks" ? ["Pylontech", "Hithium"] : [];
+          const brands = [...new Set([...base, ...g.rows.map(brandOf)])].sort((a, b) => brandRank(a) - brandRank(b));
           const id = tab + ":" + g.id;
           return (
             <Folder key={id} title={g.title} count={g.rows.length} open={isOpen(id)} onToggle={() => toggle(id)} level={0}>
