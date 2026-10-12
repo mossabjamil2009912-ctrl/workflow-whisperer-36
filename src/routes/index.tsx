@@ -292,7 +292,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
           </div>
           <ul className="overflow-hidden rounded-lg border border-border">
             {shown.map((c) => (
-              <li key={c.id} className={`flex items-center gap-3 border-b border-border px-3 py-2.5 last:border-b-0 ${openId === c.id ? "bg-muted" : ""}`}>
+              <li key={c.id} onClick={() => setOpenId(c.id)} className={`flex cursor-pointer items-center hover:bg-muted/60 gap-3 border-b border-border px-3 py-2.5 last:border-b-0 ${openId === c.id ? "bg-muted" : ""}`}>
                 <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
                   <User className="h-5 w-5" /><span className="absolute bottom-0 left-0 h-2.5 w-2.5 rounded-full border-2 border-card bg-s-green" />
                 </div>
@@ -447,7 +447,7 @@ function Chat({ pw, c, onBack }: { pw: string; c: Cust; onBack: () => void }) {
       </header>
       {paused && <div className="bg-destructive px-3 py-1.5 text-center text-xs text-destructive-foreground">البوت متوقف لهذا العميل — أنت تتحدث معه مباشرة</div>}
       {c.system && <div className="flex items-center gap-2 bg-secondary px-3 py-2 text-xs text-secondary-foreground"><Sun className="h-4 w-4" />{c.system}</div>}
-      <div className="flex-1 space-y-2 overflow-y-auto bg-chat-bg bg-cover bg-center bg-no-repeat p-3 bg-blend-overlay dark:bg-blend-multiply"
+      <div className="flex-1 space-y-2 overflow-y-auto bg-chat-bg bg-cover bg-center bg-no-repeat p-3"
         style={{ backgroundImage: `url(${chatBg})` }}>
         {msgs.map((m, i) => (
           <div key={m.id}>
