@@ -47,10 +47,11 @@ export const getMessages = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     check(data.pw);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("customers").update({ unread: 0 }).eq("id", data.id);
-    const { data: rows, error } = await supabaseAdmin
-      .from("messages").select("*").eq("customer_id", data.id)
-      .order("created_at", { ascending: true }).limit(1000);
+    const [, { data: rows, error }] = await Promise.all([
+      supabaseAdmin.from("customers").update({ unread: 0 }).eq("id", data.id).gt("unread", 0),
+      supabaseAdmin.from("messages").select("*").eq("customer_id", data.id)
+        .order("created_at", { ascending: true }).limit(1000),
+    ]);
     if (error) throw new Error(error.message);
     return rows;
   });

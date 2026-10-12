@@ -13,7 +13,7 @@ const TABS: { k: St; label: string }[] = [
 
 export function useTickets(pw: string) {
   const list = useServerFn(listTickets);
-  return useQuery({ queryKey: ["tickets"], queryFn: () => list({ data: { pw } }), refetchInterval: 10000 });
+  return useQuery({ queryKey: ["tickets"], queryFn: () => list({ data: { pw } }), refetchInterval: 30000 });
 }
 
 export function Tickets({ pw }: { pw: string }) {
