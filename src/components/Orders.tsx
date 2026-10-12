@@ -13,7 +13,7 @@ const TABS: { k: St; label: string }[] = [
 
 export function useOrders(pw: string) {
   const list = useServerFn(listOrders);
-  return useQuery({ queryKey: ["orders"], queryFn: () => list({ data: { pw } }), refetchInterval: 10000 });
+  return useQuery({ queryKey: ["orders"], queryFn: () => list({ data: { pw } }), refetchInterval: 30000 });
 }
 
 export function Orders({ pw }: { pw: string }) {

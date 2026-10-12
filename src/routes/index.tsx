@@ -144,7 +144,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ["customers"],
     queryFn: () => list({ data: { pw } }),
-    refetchInterval: 10000,
+    refetchInterval: 20000,
   });
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<Stage | "all">("all");
@@ -421,7 +421,8 @@ function Chat({ pw, c, onBack }: { pw: string; c: Cust; onBack: () => void }) {
   const { data: msgs = [], refetch } = useQuery({
     queryKey: ["messages", c.id],
     queryFn: () => get({ data: { pw, id: c.id } }),
-    refetchInterval: 8000,
+    refetchInterval: 10000,
+    staleTime: 5000,
   });
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => { end.current?.scrollIntoView(); }, [msgs.length]);
