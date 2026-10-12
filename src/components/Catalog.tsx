@@ -113,7 +113,7 @@ export function Catalog({ pw }: { pw: string }) {
                     const bid = id + ":" + b;
                     return (
                       <Folder key={bid} title={b || "أخرى"} count={br.length} open={isOpen(bid)} onToggle={() => toggle(bid)} level={1}>
-                        {br.map(card)}
+                        {br.length ? br.map(card) : <p className="py-3 text-center text-xs text-muted-foreground">لا توجد أصناف</p>}
                       </Folder>
                     );
                   })}
