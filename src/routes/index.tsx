@@ -31,7 +31,7 @@ import { Orders, useOrders } from "@/components/Orders";
 import { Tickets, useTickets } from "@/components/Tickets";
 import { Catalog } from "@/components/Catalog";
 import logo from "@/assets/actes-logo.png.asset.json";
-import chatBg from "@/assets/actes-chat-bg.png";
+import chatBg from "@/assets/actes-chat-bg.webp";
 
 export const Route = createFileRoute("/")({
   head: () => ({
