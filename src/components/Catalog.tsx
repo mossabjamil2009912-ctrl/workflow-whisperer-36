@@ -27,7 +27,12 @@ const BRAND_ORDER = ["Li Power", "Solis", "Deye", "Pylontech", "Hithium", "Sunte
 function sectionOf(r: Row): string {
   const t = (r.key + " " + r.name).toUpperCase();
   if (/^CAB_|كبينة|112C|A300|L260/.test(t)) return "cabinets";
-  if (r.category === "racks" || /M1C|M5A|112S|_M1_|_M5_/.test(t)) return "racks";
+  if (r.kind === "item") {
+    if (/^BAT_PYLON_M/.test(r.key)) return "batteries";
+    if (/^(CTRL|KIT)_/.test(r.key)) return "battery_controls";
+    if (/^RACK_/.test(r.key)) return "racks";
+  }
+  if (r.category === "racks" || /M1C|M5A|112S/.test(t)) return "racks";
   if (r.kind === "datasheet") {
     if (/INV|إنفرتر|انفرتر/.test(t)) return "inverters";
     if (/PV|PANEL|لوح|الواح|ألواح/.test(t)) return "panels";
