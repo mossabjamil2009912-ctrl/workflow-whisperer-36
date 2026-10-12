@@ -21,14 +21,21 @@ function brandOf(r: Row): string {
   return "";
 }
 
-const DS_GROUPS: [string, string][] = [["inverters", "الإنفرترات"], ["panels", "الألواح الشمسية"], ["batteries", "البطاريات"]];
-function dsCategory(r: Row): string {
-  if (DS_GROUPS.some(([k]) => k === r.category)) return r.category;
+// Display order of sections and brands inside them (UI only; DB categories unchanged).
+const SECTIONS: [string, string][] = [["panels", "الألواح"], ["inverters", "الإنفرترات"], ["batteries", "البطاريات"], ["cabinets", "الكبائن"], ["racks", "الراكات"]];
+const BRAND_ORDER = ["Li Power", "Solis", "Deye", "Pylontech", "Hithium", "Suntech", ""];
+function sectionOf(r: Row): string {
   const t = (r.key + " " + r.name).toUpperCase();
-  if (/INV|إنفرتر|انفرتر/.test(t)) return "inverters";
-  if (/PV|لوح|الواح|ألواح/.test(t)) return "panels";
-  return "batteries";
+  if (/^CAB_|كبينة|112C|A300|L260/.test(t)) return "cabinets";
+  if (r.category === "racks" || /M1C|M5A|112S|_M1_|_M5_/.test(t)) return "racks";
+  if (r.kind === "datasheet") {
+    if (/INV|إنفرتر|انفرتر/.test(t)) return "inverters";
+    if (/PV|PANEL|لوح|الواح|ألواح/.test(t)) return "panels";
+    return "batteries";
+  }
+  return r.category;
 }
+const brandRank = (b: string) => { const i = BRAND_ORDER.indexOf(b); return i < 0 ? 99 : i; };
 
 function Folder({ title, count, open, onToggle, level, children }: { title: string; count: number; open: boolean; onToggle: () => void; level: number; children: React.ReactNode }) {
   return (
@@ -54,10 +61,11 @@ export function Catalog({ pw }: { pw: string }) {
   const isOpen = (id: string) => !!q || openSet.has(id);
   const toggle = (id: string) => setOpenSet((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
-  const groups: { id: string; title: string; rows: Row[] }[] =
-    tab === "item"
-      ? [...new Set(shown.map((r) => r.category))].map((c) => ({ id: c, title: shown.find((r) => r.category === c)?.category_title ?? c, rows: shown.filter((r) => r.category === c) }))
-      : DS_GROUPS.map(([id, title]) => ({ id, title, rows: shown.filter((r) => dsCategory(r) === id) }));
+  const others = [...new Set(shown.map(sectionOf))].filter((c) => !SECTIONS.some(([k]) => k === c));
+  const groups: { id: string; title: string; rows: Row[] }[] = [
+    ...SECTIONS.map(([id, title]) => ({ id, title, rows: shown.filter((r) => sectionOf(r) === id) })),
+    ...others.map((c) => ({ id: c, title: shown.find((r) => r.category === c)?.category_title ?? c, rows: shown.filter((r) => sectionOf(r) === c) })),
+  ].filter((g) => g.rows.length);
 
   const card = (r: Row) => (
     <div key={r.key} className={`rounded-xl border bg-card p-3 ${r.active ? "" : "opacity-60"}`}>
@@ -87,7 +95,7 @@ export function Catalog({ pw }: { pw: string }) {
       </div>
       <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-6">
         {groups.map((g) => {
-          const brands = [...new Set(g.rows.map(brandOf))];
+          const brands = [...new Set(g.rows.map(brandOf))].sort((a, b) => brandRank(a) - brandRank(b));
           const id = tab + ":" + g.id;
           return (
             <Folder key={id} title={g.title} count={g.rows.length} open={isOpen(id)} onToggle={() => toggle(id)} level={0}>
