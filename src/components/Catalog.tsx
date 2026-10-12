@@ -27,7 +27,12 @@ const BRAND_ORDER = ["Li Power", "Solis", "Deye", "Pylontech", "Hithium", "Sunte
 function sectionOf(r: Row): string {
   const t = (r.key + " " + r.name).toUpperCase();
   if (/^CAB_|كبينة|112C|A300|L260/.test(t)) return "cabinets";
-  if (r.category === "racks" || /M1C|M5A|112S|_M1_|_M5_/.test(t)) return "racks";
+  if (r.kind === "item") {
+    if (/^BAT_PYLON_M/.test(r.key)) return "batteries";
+    if (/^(CTRL|KIT)_/.test(r.key)) return "battery_controls";
+    if (/^RACK_/.test(r.key)) return "racks";
+  }
+  if (r.category === "racks" || /M1C|M5A|112S/.test(t)) return "racks";
   if (r.kind === "datasheet") {
     if (/INV|إنفرتر|انفرتر/.test(t)) return "inverters";
     if (/PV|PANEL|لوح|الواح|ألواح/.test(t)) return "panels";
@@ -95,7 +100,8 @@ export function Catalog({ pw }: { pw: string }) {
       </div>
       <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-6">
         {groups.map((g) => {
-          const brands = [...new Set(g.rows.map(brandOf))].sort((a, b) => brandRank(a) - brandRank(b));
+          const base = g.id === "racks" ? ["Pylontech", "Hithium"] : [];
+          const brands = [...new Set([...base, ...g.rows.map(brandOf)])].sort((a, b) => brandRank(a) - brandRank(b));
           const id = tab + ":" + g.id;
           return (
             <Folder key={id} title={g.title} count={g.rows.length} open={isOpen(id)} onToggle={() => toggle(id)} level={0}>
@@ -107,7 +113,7 @@ export function Catalog({ pw }: { pw: string }) {
                     const bid = id + ":" + b;
                     return (
                       <Folder key={bid} title={b || "أخرى"} count={br.length} open={isOpen(bid)} onToggle={() => toggle(bid)} level={1}>
-                        {br.map(card)}
+                        {br.length ? br.map(card) : <p className="py-3 text-center text-xs text-muted-foreground">لا توجد أصناف</p>}
                       </Folder>
                     );
                   })}
