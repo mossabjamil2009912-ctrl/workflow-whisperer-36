@@ -397,7 +397,7 @@ function Details({ pw, c, orders, drawer, onClose }: { pw: string; c: Cust; draw
   const t = sysType(c.system);
   return (
     <aside className={drawer
-      ? "absolute inset-y-0 left-0 z-10 flex w-[88%] max-w-sm flex-col gap-3 overflow-y-auto border-r border-border bg-background p-4 shadow-2xl xl:hidden"
+      ? "absolute inset-y-0 left-0 z-10 flex w-[88%] max-w-sm flex-col gap-3 overflow-y-auto border-r border-border bg-background p-4 shadow-2xl"
       : "hidden w-80 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border bg-muted/40 p-4 xl:flex"}>
       {drawer && <button onClick={onClose} className="self-start rounded-lg border border-border px-3 py-1 text-xs hover:bg-muted">✕ إغلاق</button>}
       <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 text-center">
@@ -489,7 +489,7 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
           <button title={paused ? "تشغيل البوت" : "إيقاف البوت"} aria-label={paused ? "تشغيل البوت" : "إيقاف البوت"}
             onClick={async () => { const v = !paused; setPaused(v); try { await togglePause({ data: { pw, id: c.id, paused: v } }); } catch { setPaused(!v); } }}
             className={`flex shrink-0 items-center justify-center rounded-full p-1.5 ${paused ? "bg-destructive text-destructive-foreground" : "hover:bg-wa-bot"}`}><Bot className="h-4 w-4" /></button>
-          {onInfo && <button onClick={onInfo} aria-label="تفاصيل العميل" className="shrink-0 rounded-full p-1.5 hover:bg-wa-bot xl:hidden"><Info className="h-4 w-4" /></button>}
+          {onInfo && <button onClick={onInfo} aria-label="تفاصيل العميل" className="shrink-0 rounded-full p-1.5 hover:bg-wa-bot"><Info className="h-4 w-4" /></button>}
         </div>
         {paused && <div className="bg-destructive px-3 py-1 text-center text-[10px] text-destructive-foreground">البوت متوقف — أنت تتحدث مع العميل مباشرة</div>}
         {c.system && <div className="flex items-center gap-1.5 bg-wa-bot px-3 py-1 text-[10px] text-wa-muted"><Sun className="h-3 w-3 shrink-0" /><span className="truncate">{c.system}</span></div>}
