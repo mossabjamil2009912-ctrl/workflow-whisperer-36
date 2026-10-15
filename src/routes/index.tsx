@@ -465,7 +465,6 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
   });
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => { end.current?.scrollIntoView(); }, [msgs.length]);
-  const stage = c.stage as Stage;
   return (
     <>
       <div className="flex h-full flex-1 justify-center overflow-hidden md:py-0">
