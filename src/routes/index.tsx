@@ -242,7 +242,6 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
               aria-label={muted ? "تشغيل صوت التنبيه" : "كتم صوت التنبيه"} className="rounded-md p-1.5 hover:bg-ink-foreground/10">
               {muted ? <BellOff className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
             </button>
-            <button onClick={onLogout} className="px-1 text-xs md:text-sm">خروج</button>
             <img src={logoClean} alt="ACTES أكتس" className="h-9 w-auto shrink-0 md:h-10 lg:h-8" />
           </div>
         </div>
