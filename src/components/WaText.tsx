@@ -31,18 +31,10 @@ export function WaText({ text }: { text: string }) {
   return (
     <div>
       {bodyText && bodyText.split("\n").map((l, i) => <div key={i} className="min-h-[1em] whitespace-pre-wrap">{waInline(l, String(i))}</div>)}
-      {rows.length > 0 && (
-        <div className="-mx-3 mt-2 border-t border-wa-line">
-          <div className="py-2 text-center text-sm font-medium text-wa-link">☰ القائمة</div>
-          <ul className="border-t border-wa-line">
-            {rows.map((r, i) => <li key={i} className="border-b border-wa-line px-3 py-1.5 text-xs last:border-0">{r}</li>)}
-          </ul>
-        </div>
-      )}
-      {buttons.length > 0 && (
-        <div className="-mx-3 mt-2">
-          {buttons.map((b, i) => (
-            <div key={i} className="border-t border-wa-line py-2.5 text-center text-sm font-medium text-wa-link">↪ {b}</div>
+      {[...rows, ...buttons].length > 0 && (
+        <div className="-mx-2.5 mt-1.5">
+          {[...rows, ...buttons].map((b, i) => (
+            <div key={i} className="border-t border-wa-line py-2 text-center text-[12.5px] font-medium text-wa-link">↪ {b}</div>
           ))}
         </div>
       )}
