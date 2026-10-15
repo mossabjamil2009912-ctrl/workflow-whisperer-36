@@ -428,7 +428,7 @@ function Details({ pw, c, orders, drawer, onClose }: { pw: string; c: Cust; draw
 
 type Cust = Awaited<ReturnType<typeof listCustomers>>[number];
 
-function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => void; onInfo?: () => void }) {
+function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => void; onInfo?: (() => void) | undefined }) {
   const get = useServerFn(getMessages);
   const send = useServerFn(sendMessage);
   const togglePause = useServerFn(setBotPaused);
