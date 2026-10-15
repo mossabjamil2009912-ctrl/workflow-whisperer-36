@@ -31,6 +31,7 @@ import { Orders, useOrders } from "@/components/Orders";
 import { Tickets, useTickets } from "@/components/Tickets";
 import { Catalog } from "@/components/Catalog";
 import logo from "@/assets/actes-logo.png.asset.json";
+import logoClean from "@/assets/actes-logo-clean.png";
 import chatBg from "@/assets/actes-chat-bg.webp";
 
 export const Route = createFileRoute("/")({
@@ -216,7 +217,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"><MessageCircle className="h-4 w-4" /></span>
             محادثات العملاء
           </h1>
-          <img src={logo.url} alt="ACTES أكتس" className="h-11 w-auto shrink-0 rounded-lg md:h-14" />
+          <img src={logoClean} alt="ACTES أكتس" className="h-10 w-auto shrink-0 md:h-12" />
         </div>
       </header>
 
