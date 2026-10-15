@@ -328,12 +328,18 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
         </div>
         {wide && (
           <aside className="hidden h-full min-h-0 overscroll-contain lg:flex"
-            onWheel={(e) => {
-              const box = (e.currentTarget.querySelector(".overflow-y-auto") as HTMLElement | null);
-              const inner = (e.target as HTMLElement).closest?.(".overflow-y-auto") as HTMLElement | null;
-              (inner ?? box)?.scrollBy({ top: e.deltaY });
-            }}
-            ref={(el) => { if (el && !el.dataset["w"]) { el.dataset["w"] = "1"; el.addEventListener("wheel", (ev) => ev.preventDefault(), { passive: false }); } }}>
+            ref={(el) => {
+              if (!el || el.dataset["w"]) return;
+              el.dataset["w"] = "1";
+              el.addEventListener("wheel", (ev) => {
+                ev.preventDefault();
+                const t = ev.target as HTMLElement;
+                const box = (t.closest?.("[data-scroll]") ?? el.querySelector("[data-chat-scroll]")) as HTMLElement | null;
+                if (!box) return;
+                const k = ev.deltaMode === 1 ? 32 : ev.deltaMode === 2 ? box.clientHeight : 1;
+                box.scrollTop += ev.deltaY * k;
+              }, { passive: false });
+            }}>
             {open ? (
               <div className="relative flex h-full">
                 <Chat pw={pw} c={open} onBack={() => setOpenId(null)} onInfo={() => setInfo(true)} />
@@ -481,7 +487,7 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
             className={`flex shrink-0 items-center justify-center rounded-full p-1 ${paused ? "bg-destructive text-destructive-foreground" : "hover:bg-wa-bot"}`}><Bot className="h-3.5 w-3.5" /></button>
           {onInfo && <button onClick={onInfo} aria-label="تفاصيل العميل" className="shrink-0 rounded-full p-1 hover:bg-wa-bot"><Info className="h-3.5 w-3.5" /></button>}
         </div>
-        <div className="flex-1 space-y-1.5 overflow-y-auto overscroll-contain bg-cover bg-center p-2.5 text-[12.5px]" style={{ backgroundImage: `url(${waBg.url})` }}>
+        <div data-scroll data-chat-scroll className="min-h-0 flex-1 space-y-1.5 overflow-y-auto overscroll-contain bg-cover bg-center p-2.5 text-[12.5px]" style={{ backgroundImage: `url(${waBg.url})` }}>
         {msgs.map((m, i) => (
           <div key={m.id}>
           {(i === 0 || new Date(msgs[i - 1]!.created_at).toDateString() !== new Date(m.created_at).toDateString()) && (
