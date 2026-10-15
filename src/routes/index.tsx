@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, FileText, Search, Phone, MapPin, Sun, MessageCircle, Lock, Send, Bell, BellOff, Bot, User, Moon, Copy, Check, Clock, Download, StickyNote, Headphones, LayoutGrid, Image as ImageIcon, Inbox, ShoppingCart, UserPlus, Wallet } from "lucide-react";
@@ -456,7 +456,7 @@ function Chat({ pw, c, onBack }: { pw: string; c: Cust; onBack: () => void }) {
             <div className="my-2 flex justify-center"><span className="rounded-full bg-card px-3 py-0.5 text-[11px] text-muted-foreground shadow-sm">{dayLabel(m.created_at)}</span></div>
           )}
           <div className={`flex ${m.direction === "customer" ? "justify-start" : "justify-end"}`}>
-            <div className={`max-w-[80%] xl:max-w-[65%] whitespace-pre-wrap break-words px-3 py-2 text-sm shadow-sm ${m.direction === "customer" ? "rounded-2xl rounded-tr-sm bg-bubble-in" : m.direction === "agent" ? "rounded-2xl rounded-tl-sm bg-bubble-agent" : "rounded-2xl rounded-tl-sm bg-bubble-out"}`}>
+            <div className={`max-w-[80%] xl:max-w-[65%] break-words px-3 py-2 text-sm shadow-sm ${m.direction === "customer" ? "rounded-2xl rounded-tr-sm bg-bubble-in" : m.direction === "agent" ? "rounded-2xl rounded-tl-sm bg-bubble-agent" : "rounded-2xl rounded-tl-sm bg-bubble-out"}`}>
               {(m as { src?: string | null }).src || ["pdf", "image", "audio", "video", "document", "sticker"].includes(m.kind) ? <MediaBubble m={m as MediaMsg} />
                 : m.kind === "button" ? <span className="rounded border border-primary/40 px-2 py-0.5 text-primary">🔘 {m.text}</span>
                 : <WaText text={m.text} />}
