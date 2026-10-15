@@ -54,7 +54,21 @@ export const getMessages = createServerFn({ method: "POST" })
     ]);
     if (error) throw new Error(error.message);
     // أحدث 1000 رسالة (كانت تُجلب الأقدم فتختفي الرسائل الجديدة في المحادثات الطويلة)
-    const rows = (desc ?? []).reverse();
+    const all = (desc ?? []).reverse();
+    // البوت يسجّل فقاعة العرض بعد ربط الملف أحياناً، فتتكرر فقاعة بلا ملف: نحذف المكرر ونستعير الملف من نفس العرض
+    const withMedia = new Map<string, (typeof all)[number]>();
+    for (const r of all) if (r.direction === "bot" && r.kind === "pdf" && r.media_id) withMedia.set(r.text, r);
+    const rows = all.filter((r, i) => {
+      if (!(r.direction === "bot" && r.kind === "pdf" && !r.media_id)) return true;
+      const near = all.find((o, j) => j !== i && o.text === r.text && o.media_id && Math.abs(new Date(o.created_at).getTime() - new Date(r.created_at).getTime()) < 120000);
+      return !near;
+    }).map((r) => {
+      if (r.direction === "bot" && r.kind === "pdf" && !r.media_id && !r.media_url) {
+        const o = withMedia.get(r.text);
+        if (o) return { ...r, media_id: o.media_id, file_name: o.file_name, mime: o.mime };
+      }
+      return r;
+    });
     const { mediaToken } = await import("./media-token.server");
     return Promise.all(rows.map(async (r) => ({
       ...r,
