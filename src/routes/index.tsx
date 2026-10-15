@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { WaText } from "@/components/WaText";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowRight, FileText, Search, Phone, MapPin, Sun, MessageCircle, Lock, Send, Bell, BellOff, Bot, User, Moon, Copy, Check, Clock, Download, StickyNote, Headphones, LayoutGrid, Image as ImageIcon, Inbox, ShoppingCart, UserPlus, Wallet } from "lucide-react";
+import { ArrowRight, FileText, Search, Phone, MapPin, Sun, MessageCircle, Lock, Send, Bell, BellOff, Bot, User, Moon, Copy, Check, Clock, Download, Info, StickyNote, Headphones, LayoutGrid, Image as ImageIcon, Inbox, ShoppingCart, UserPlus, Wallet } from "lucide-react";
 
 let audioCtx: AudioContext | null = null;
 function playChime() {
@@ -160,12 +160,17 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
   const [city, setCity] = useState("");
   const [sys, setSys] = useState("");
   const cities = useMemo(() => [...new Set(customers.map((c) => (c.city ?? "").trim()).filter(Boolean))].sort(), [customers]);
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [info, setInfo] = useState(false);
+  useEffect(() => { setInfo(false); }, [openId]);
   const shown = useMemo(() => customers.filter((c) =>
     (filter === "all" || c.stage === filter) &&
+    (!unreadOnly || c.unread > 0) &&
     (!city || (c.city ?? "").trim() === city) &&
     (!sys || sysType(c.system) === sys) &&
-    ((c.name ?? "").includes(q) || c.phone.includes(q.replace(/\s/g, "")))), [customers, q, filter, city, sys]);
+    ((c.name ?? "").includes(q) || c.phone.includes(q.replace(/\s/g, "")))), [customers, q, filter, city, sys, unreadOnly]);
   const open = customers.find((c) => c.id === openId) ?? null;
+  const openOrders = open ? orders.filter((o) => o.customer_id === open.id || o.phone.replace(/\D/g, "").endsWith(open.phone.replace(/\D/g, "").slice(-9))) : [];
 
   const [muted, setMuted] = useState(false);
   useEffect(() => { setMuted(localStorage.getItem("actes_mute") === "1"); }, []);
@@ -248,7 +253,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
         {view === "orders" ? <div className="rounded-xl border border-border bg-card"><Orders pw={pw} /></div>
         : view === "tickets" ? <div className="rounded-xl border border-border bg-card"><Tickets pw={pw} /></div>
         : view === "catalog" ? <div className="rounded-xl border border-border bg-card"><Catalog pw={pw} /></div> : <>
-        <div className="grid grid-cols-5 gap-2 rounded-xl border border-border bg-card p-2 shadow-sm md:gap-3 md:p-2.5">
+        <div className="grid grid-cols-3 gap-2 rounded-xl border border-border bg-card p-2 shadow-sm sm:grid-cols-5 md:gap-3 md:p-2.5">
           {stats.map((s) => { const st = statStyle[s.key] ?? statStyle["all"]!; const Ic = st.icon; return (
             <button key={s.label} onClick={() => setFilter(filter === s.key ? "all" : s.key)}
               style={{ background: `linear-gradient(165deg, transparent 50%, color-mix(in oklch, var(--color-${st.c}) 16%, transparent))` }}
@@ -280,6 +285,11 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
               <Download className="h-4 w-4" />تصدير Excel
             </button>
           </div>
+          <button onClick={() => setUnreadOnly(!unreadOnly)}
+            className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold md:text-sm ${unreadOnly ? "border-destructive bg-destructive text-destructive-foreground" : "border-border hover:bg-muted"}`}>
+            <Inbox className="h-4 w-4" />بانتظار الرد فقط
+            <span className={`rounded-full px-1.5 text-[11px] ${unreadOnly ? "bg-background text-foreground" : "bg-destructive text-destructive-foreground"}`}>{customers.filter((c) => c.unread > 0).length}</span>
+          </button>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {(["all", ...Object.keys(STAGES)] as (Stage | "all")[]).map((s) => {
               const n = customers.filter((c) => c.unread > 0 && (s === "all" || c.stage === s)).length;
@@ -332,11 +342,15 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 md:p-6" onClick={() => setOpenId(null)}>
-          <div className="flex h-full w-full overflow-hidden bg-background shadow-2xl md:h-[90vh] md:max-w-6xl md:rounded-2xl md:border md:border-border" onClick={(e) => e.stopPropagation()}>
+          <div className="relative flex h-full w-full overflow-hidden bg-background shadow-2xl md:h-[90vh] md:max-w-6xl md:rounded-2xl md:border md:border-border" onClick={(e) => e.stopPropagation()}>
             <main className="flex min-w-0 flex-1 flex-col">
-              <Chat pw={pw} c={open} onBack={() => setOpenId(null)} />
+              <Chat pw={pw} c={open} onBack={() => setOpenId(null)} onInfo={view === "chats" ? () => setInfo(true) : undefined} />
             </main>
-            {view === "chats" && <Details pw={pw} c={open} orders={orders.filter((o) => o.customer_id === open.id || o.phone.replace(/\D/g, "").endsWith(open.phone.replace(/\D/g, "").slice(-9)))} />}
+            {view === "chats" && <Details pw={pw} c={open} orders={openOrders} />}
+            {view === "chats" && info && <>
+              <div className="absolute inset-0 z-[5] bg-foreground/30 xl:hidden" onClick={() => setInfo(false)} />
+              <Details pw={pw} c={open} orders={openOrders} drawer onClose={() => setInfo(false)} />
+            </>}
           </div>
         </div>
       )}
@@ -346,7 +360,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
 
 const orderStatus: Record<string, string> = { pending: "معلقة", confirmed: "مؤكدة", cancelled: "ملغية" };
 
-function Details({ pw, c, orders }: { pw: string; c: Cust; orders: { id: string; status: string; amount: string | null; invoice_no: string | null; method: string | null; created_at: string }[] }) {
+function Details({ pw, c, orders, drawer, onClose }: { pw: string; c: Cust; drawer?: boolean; onClose?: () => void; orders: { id: string; status: string; amount: string | null; invoice_no: string | null; method: string | null; created_at: string }[] }) {
   const stage = c.stage as Stage;
   const digits = c.phone.replace(/\D/g, "");
   const parts = (c.system ?? "").split("|").map((s) => s.trim()).filter(Boolean);
@@ -358,7 +372,10 @@ function Details({ pw, c, orders }: { pw: string; c: Cust; orders: { id: string;
   useEffect(() => { setNote(c.notes ?? ""); setSaved(""); }, [c.id]);
   const t = sysType(c.system);
   return (
-    <aside className="hidden w-80 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border bg-muted/40 p-4 xl:flex">
+    <aside className={drawer
+      ? "absolute inset-y-0 left-0 z-10 flex w-[88%] max-w-sm flex-col gap-3 overflow-y-auto border-r border-border bg-background p-4 shadow-2xl xl:hidden"
+      : "hidden w-80 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border bg-muted/40 p-4 xl:flex"}>
+      {drawer && <button onClick={onClose} className="self-start rounded-lg border border-border px-3 py-1 text-xs hover:bg-muted">✕ إغلاق</button>}
       <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-2xl font-bold text-secondary-foreground">{(c.name ?? "#")[0]}</div>
         <div className="font-bold">{c.name || "عميل"}</div>
@@ -411,7 +428,7 @@ function Details({ pw, c, orders }: { pw: string; c: Cust; orders: { id: string;
 
 type Cust = Awaited<ReturnType<typeof listCustomers>>[number];
 
-function Chat({ pw, c, onBack }: { pw: string; c: Cust; onBack: () => void }) {
+function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => void; onInfo?: (() => void) | undefined }) {
   const get = useServerFn(getMessages);
   const send = useServerFn(sendMessage);
   const togglePause = useServerFn(setBotPaused);
@@ -433,6 +450,7 @@ function Chat({ pw, c, onBack }: { pw: string; c: Cust; onBack: () => void }) {
     <>
       <header className="flex items-center gap-3 border-b border-border bg-card px-3 py-3">
         <button onClick={onBack} aria-label="رجوع" className="flex shrink-0 items-center gap-1 rounded-lg border border-border px-2 py-1.5 text-sm hover:bg-muted"><ArrowRight className="h-5 w-5" /><span className="hidden sm:inline">رجوع</span></button>
+        {onInfo && <button onClick={onInfo} aria-label="تفاصيل العميل" className="order-last flex shrink-0 items-center gap-1 rounded-lg border border-border px-2 py-1.5 text-xs hover:bg-muted xl:hidden"><Info className="h-4 w-4" /><span className="hidden sm:inline">التفاصيل</span></button>}
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary font-bold">{(c.name ?? "#")[0]}</div>
         <div className="min-w-0 flex-1">
           <div className="truncate font-semibold">{c.name || "عميل"}</div>
