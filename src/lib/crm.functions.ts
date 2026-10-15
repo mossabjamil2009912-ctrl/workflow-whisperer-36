@@ -53,7 +53,13 @@ export const getMessages = createServerFn({ method: "POST" })
         .order("created_at", { ascending: true }).limit(1000),
     ]);
     if (error) throw new Error(error.message);
-    return rows;
+    const { mediaToken } = await import("./media-token.server");
+    return Promise.all((rows ?? []).map(async (r) => ({
+      ...r,
+      src: r.media_url ? r.media_url
+        : r.media_id ? `/api/public/crm-media?id=${encodeURIComponent(r.media_id)}&t=${await mediaToken(r.media_id)}${r.file_name ? `&n=${encodeURIComponent(r.file_name)}` : ""}`
+        : null,
+    })));
   });
 
 export const sendMessage = createServerFn({ method: "POST" })

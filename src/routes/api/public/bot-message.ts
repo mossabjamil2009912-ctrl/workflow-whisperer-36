@@ -9,7 +9,11 @@ const Body = z.object({
   stage: z.enum(["new", "quote", "sld", "cod", "buy", "human"]).optional().nullable(),
   system: z.string().max(300).optional().nullable(),
   direction: z.enum(["customer", "bot"]).default("customer"),
-  kind: z.enum(["text", "button", "pdf"]).default("text"),
+  kind: z.enum(["text", "button", "pdf", "image", "audio", "video", "document", "sticker"]).default("text"),
+  media_id: z.string().max(200).optional().nullable(),
+  media_url: z.string().url().max(1000).optional().nullable(),
+  mime: z.string().max(120).optional().nullable(),
+  file_name: z.string().max(300).optional().nullable(),
   text: z.string().max(4000).default(""),
 });
 
@@ -70,6 +74,7 @@ export const Route = createFileRoute("/api/public/bot-message")({
           if (d.text.trim()) {
             await supabaseAdmin.from("messages").insert({
               customer_id: id!, direction: d.direction, kind: d.kind, text: d.text,
+              media_id: d.media_id ?? null, media_url: d.media_url ?? null, mime: d.mime ?? null, file_name: d.file_name ?? null,
             });
           }
         }
