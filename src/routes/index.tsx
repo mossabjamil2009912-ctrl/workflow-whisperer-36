@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { WaText } from "@/components/WaText";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, FileText, Search, Phone, MapPin, Sun, MessageCircle, Lock, Send, Bell, BellOff, Bot, User, Moon, Copy, Check, Clock, Download, StickyNote, Headphones, LayoutGrid, Image as ImageIcon, Inbox, ShoppingCart, UserPlus, Wallet } from "lucide-react";
