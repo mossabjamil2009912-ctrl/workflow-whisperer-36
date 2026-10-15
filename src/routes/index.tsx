@@ -260,36 +260,13 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
 
 
         <div className="space-y-2.5 rounded-xl border border-border bg-card p-2.5 shadow-sm lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:space-y-1.5 lg:p-2">
-          <div className="flex flex-wrap gap-2">
-            <div className="relative min-w-[12rem] flex-[2]">
-              <Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث بالاسم أو الرقم"
-                className="w-full rounded-lg border border-input bg-card py-2 pl-3 pr-9 text-sm outline-none focus:ring-2 focus:ring-ring" />
-            </div>
-            <select value={city} onChange={(e) => setCity(e.target.value)} aria-label="المدينة" className="flex-1 rounded-lg border border-input bg-card px-3 py-2 text-sm">
-              <option value="">كل المدن</option>
-              {cities.map((x) => <option key={x} value={x}>{x}</option>)}
-            </select>
-            <select value={sys} onChange={(e) => setSys(e.target.value)} aria-label="نوع المنظومة" className="flex-1 rounded-lg border border-input bg-card px-3 py-2 text-sm">
-              <option value="">كل الأنواع</option>
-              {(Object.keys(SYS) as SysT[]).map((k) => <option key={k} value={k}>{SYS[k]}</option>)}
-            </select>
-            <button onClick={() => exportCsv(shown, orders)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
-              <Download className="h-4 w-4" />تصدير Excel
-            </button>
-          </div>
-          <button onClick={() => setUnreadOnly(!unreadOnly)}
-            className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold md:text-sm ${unreadOnly ? "border-destructive bg-destructive text-destructive-foreground" : "border-border hover:bg-muted"}`}>
-            <Inbox className="h-4 w-4" />بانتظار الرد فقط
-            <span className={`rounded-full px-1.5 text-[11px] ${unreadOnly ? "bg-background text-foreground" : "bg-destructive text-destructive-foreground"}`}>{customers.filter((c) => c.unread > 0).length}</span>
-          </button>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {(["all", ...Object.keys(STAGES)] as (Stage | "all")[]).map((s) => {
               const n = customers.filter((c) => c.unread > 0 && (s === "all" || c.stage === s)).length;
               const Ic = s === "all" ? null : stageIcon[s];
               return (
               <button key={s} onClick={() => setFilter(s)}
-                className={`relative mt-2 lg:mt-1.5 flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs md:text-sm ${filter === s ? "bg-primary font-semibold text-primary-foreground" : s === "all" ? "bg-muted" : (stageClass[s] ?? "bg-muted")}`}>
+                className={`relative mt-2 lg:mt-1.5 flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs md:text-sm ${filter === s ? "bg-primary font-semibold text-primary-foreground" : "bg-muted text-foreground"}`}>
                 {Ic && <Ic className="h-4 w-4" />}{s === "all" ? "الكل" : STAGES[s]}
                 <span className="rounded-full bg-background/70 px-1.5 text-[11px] font-bold text-foreground">{s === "all" ? customers.length : customers.filter((c) => c.stage === s).length}</span>
                 {n > 0 && <span className="absolute -top-2 -left-1 min-w-[18px] animate-pulse rounded-full bg-destructive px-1 text-[10px] font-bold leading-[18px] text-destructive-foreground">{n}</span>}
@@ -313,9 +290,6 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
                 <span className={`hidden shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium sm:inline ${stageClass[c.stage] ?? stageClass["new"]}`}>{STAGES[c.stage as Stage] ?? c.stage}</span>
                 <div className="line-clamp-2 min-w-0 flex-1 text-xs text-muted-foreground">{c.last_message}</div>
                 <span className="hidden shrink-0 text-xs text-muted-foreground sm:block">{fmt(c.last_at)}</span>
-                <button onClick={() => setOpenId(c.id)} className="flex shrink-0 items-center gap-1.5 rounded-lg bg-ink px-3 py-2 text-xs font-semibold text-ink-foreground md:px-4">
-                  <MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">فتح المحادثة</span>
-                </button>
               </li>
             ))}
             {!isLoading && shown.length === 0 && (
