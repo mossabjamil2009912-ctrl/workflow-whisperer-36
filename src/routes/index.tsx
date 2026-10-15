@@ -343,7 +343,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
               const inner = (e.target as HTMLElement).closest?.(".overflow-y-auto") as HTMLElement | null;
               (inner ?? box)?.scrollBy({ top: e.deltaY });
             }}
-            ref={(el) => { if (el && !el.dataset.w) { el.dataset.w = "1"; el.addEventListener("wheel", (ev) => ev.preventDefault(), { passive: false }); } }}>
+            ref={(el) => { if (el && !el.dataset["w"]) { el.dataset["w"] = "1"; el.addEventListener("wheel", (ev) => ev.preventDefault(), { passive: false }); } }}>
             {open ? (
               <div className="relative flex h-full">
                 <Chat pw={pw} c={open} onBack={() => setOpenId(null)} onInfo={() => setInfo(true)} />
