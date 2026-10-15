@@ -341,8 +341,8 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
       </footer>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 md:p-6" onClick={() => setOpenId(null)}>
-          <div className="relative flex h-full w-full overflow-hidden bg-background shadow-2xl md:h-[90vh] md:max-w-6xl md:rounded-2xl md:border md:border-border" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 md:py-3" onClick={() => setOpenId(null)}>
+          <div className="relative flex h-full w-full justify-center gap-4 overflow-hidden md:w-auto" onClick={(e) => e.stopPropagation()}>
             <main className="flex min-w-0 flex-1 flex-col">
               <Chat pw={pw} c={open} onBack={() => setOpenId(null)} onInfo={view === "chats" ? () => setInfo(true) : undefined} />
             </main>
@@ -448,45 +448,35 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
   const stage = c.stage as Stage;
   return (
     <>
-      <header className="flex items-center gap-3 border-b border-border bg-card px-3 py-3">
-        <button onClick={onBack} aria-label="رجوع" className="flex shrink-0 items-center gap-1 rounded-lg border border-border px-2 py-1.5 text-sm hover:bg-muted"><ArrowRight className="h-5 w-5" /><span className="hidden sm:inline">رجوع</span></button>
-        {onInfo && <button onClick={onInfo} aria-label="تفاصيل العميل" className="order-last flex shrink-0 items-center gap-1 rounded-lg border border-border px-2 py-1.5 text-xs hover:bg-muted xl:hidden"><Info className="h-4 w-4" /><span className="hidden sm:inline">التفاصيل</span></button>}
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary font-bold">{(c.name ?? "#")[0]}</div>
-        <div className="min-w-0 flex-1">
-          <div className="truncate font-semibold">{c.name || "عميل"}</div>
-          <div className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
-            <span dir="ltr" className="flex items-center gap-1"><Phone className="h-3 w-3" />+{c.phone.replace(/^\+/, "")}</span>
-            {c.city && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{c.city}</span>}
-          </div>
-        </div>
-        <button
-          onClick={async () => { const v = !paused; setPaused(v); try { await togglePause({ data: { pw, id: c.id, paused: v } }); } catch { setPaused(!v); } }}
-          className={`flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1.5 text-xs font-medium ${paused ? "border-destructive bg-destructive text-destructive-foreground" : "border-border hover:bg-muted"}`}
-        ><Bot className="h-4 w-4" />{paused ? "تشغيل البوت" : "إيقاف البوت"}</button>
-        <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${stageClass[stage] ?? stageClass["new"]}`}>{STAGES[stage] ?? stage}</span>
-      </header>
-      {paused && <div className="bg-destructive px-3 py-1.5 text-center text-xs text-destructive-foreground">البوت متوقف لهذا العميل — أنت تتحدث معه مباشرة</div>}
-      {c.system && <div className="flex items-center gap-2 bg-secondary px-3 py-2 text-xs text-secondary-foreground"><Sun className="h-4 w-4" />{c.system}</div>}
-      <div className="flex flex-1 justify-center overflow-hidden bg-muted/40 p-2 sm:p-4">
-      <div className="relative flex h-full w-full max-w-[400px] flex-col overflow-hidden rounded-[2.6rem] border-[10px] border-phone bg-phone shadow-2xl">
-        <div className="absolute left-1/2 top-1.5 z-20 h-5 w-24 -translate-x-1/2 rounded-full bg-phone" />
-        <div className="flex items-center justify-between bg-wa-bar px-5 pb-1 pt-2 text-[11px] text-wa-text">
+      <div className="flex h-full flex-1 justify-center overflow-hidden md:py-0">
+      <div className="relative flex h-full w-full flex-col overflow-hidden bg-phone shadow-2xl md:aspect-[9/19] md:w-auto md:rounded-[2.6rem] md:border-[10px] md:border-phone">
+        <div className="absolute left-1/2 top-1.5 z-20 hidden h-5 w-24 -translate-x-1/2 rounded-full bg-phone md:block" />
+        <div className="flex items-center justify-between bg-wa-bar px-5 pb-1 pt-2 text-[10px] text-wa-text">
           <span>{new Date().toLocaleTimeString("ar", { hour: "numeric", minute: "2-digit" })}</span><span dir="ltr">▂▄▆ 5G 🔋</span>
         </div>
-        <div className="flex items-center gap-2 bg-wa-bar px-3 py-2 text-wa-text">
-          <ArrowRight className="h-5 w-5" />
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-wa-me text-sm font-bold">{(c.name ?? "#")[0]}</div>
-          <div className="min-w-0 flex-1 leading-tight"><div className="truncate text-sm font-semibold">ACTES API</div><div className="text-[11px] text-wa-muted">حساب تجاري</div></div>
-          <span className="text-lg">⋮</span>
+        <div className="flex items-center gap-1.5 bg-wa-bar px-2 py-1.5 text-wa-text">
+          <button onClick={onBack} aria-label="رجوع"><ArrowRight className="h-5 w-5" /></button>
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-wa-me text-xs font-bold">{(c.name ?? "#")[0]}</div>
+          <div className="min-w-0 flex-1 leading-tight">
+            <div className="truncate text-[13px] font-semibold">{c.name || "عميل"}</div>
+            <div dir="ltr" className="truncate text-right text-[10px] text-wa-muted">+{c.phone.replace(/^\+/, "")}{c.city ? ` · ${c.city}` : ""}</div>
+          </div>
+          <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium ${stageClass[stage] ?? stageClass["new"]}`}>{STAGES[stage] ?? stage}</span>
+          <button title={paused ? "تشغيل البوت" : "إيقاف البوت"} aria-label={paused ? "تشغيل البوت" : "إيقاف البوت"}
+            onClick={async () => { const v = !paused; setPaused(v); try { await togglePause({ data: { pw, id: c.id, paused: v } }); } catch { setPaused(!v); } }}
+            className={`flex shrink-0 items-center justify-center rounded-full p-1.5 ${paused ? "bg-destructive text-destructive-foreground" : "hover:bg-wa-bot"}`}><Bot className="h-4 w-4" /></button>
+          {onInfo && <button onClick={onInfo} aria-label="تفاصيل العميل" className="shrink-0 rounded-full p-1.5 hover:bg-wa-bot xl:hidden"><Info className="h-4 w-4" /></button>}
         </div>
-        <div className="flex-1 space-y-2 overflow-y-auto bg-cover bg-center p-3" style={{ backgroundImage: `url(${waBg.url})` }}>
+        {paused && <div className="bg-destructive px-3 py-1 text-center text-[10px] text-destructive-foreground">البوت متوقف — أنت تتحدث مع العميل مباشرة</div>}
+        {c.system && <div className="flex items-center gap-1.5 bg-wa-bot px-3 py-1 text-[10px] text-wa-muted"><Sun className="h-3 w-3 shrink-0" /><span className="truncate">{c.system}</span></div>}
+        <div className="flex-1 space-y-1.5 overflow-y-auto bg-cover bg-center p-2.5 text-[12.5px]" style={{ backgroundImage: `url(${waBg.url})` }}>
         {msgs.map((m, i) => (
           <div key={m.id}>
           {(i === 0 || new Date(msgs[i - 1]!.created_at).toDateString() !== new Date(m.created_at).toDateString()) && (
             <div className="my-2 flex justify-center"><span className="rounded-lg bg-wa-bot px-3 py-0.5 text-[11px] text-wa-muted shadow">{dayLabel(m.created_at)}</span></div>
           )}
           <div className={`flex ${m.direction === "customer" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] break-words px-3 py-2 text-sm text-wa-text shadow ${m.direction === "customer" ? "rounded-2xl rounded-tl-sm bg-wa-me" : m.direction === "agent" ? "rounded-2xl rounded-tr-sm bg-wa-agent" : "rounded-2xl rounded-tr-sm bg-wa-bot"}`}>
+            <div className={`max-w-[85%] break-words px-2.5 py-1.5 text-wa-text shadow ${m.direction === "customer" ? "rounded-2xl rounded-tl-sm bg-wa-me" : m.direction === "agent" ? "rounded-2xl rounded-tr-sm bg-wa-agent" : "rounded-2xl rounded-tr-sm bg-wa-bot"}`}>
               {(m as { src?: string | null }).src || ["pdf", "image", "audio", "video", "document", "sticker"].includes(m.kind) ? <MediaBubble m={m as MediaMsg} />
                 : <WaText text={m.text} />}
               <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-wa-muted">
