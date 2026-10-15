@@ -340,7 +340,8 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
           <aside className="sticky top-3 hidden h-[calc(100vh-1.5rem)] overscroll-contain lg:flex"
             onWheel={(e) => {
               const box = (e.currentTarget.querySelector(".overflow-y-auto") as HTMLElement | null);
-              if (box && !box.contains(e.target as Node)) box.scrollTop += e.deltaY;
+              const inner = (e.target as HTMLElement).closest?.(".overflow-y-auto") as HTMLElement | null;
+              (inner ?? box)?.scrollBy({ top: e.deltaY });
             }}
             ref={(el) => { if (el && !el.dataset.w) { el.dataset.w = "1"; el.addEventListener("wheel", (ev) => ev.preventDefault(), { passive: false }); } }}>
             {open ? (
