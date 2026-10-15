@@ -456,7 +456,7 @@ function Chat({ pw, c, onBack }: { pw: string; c: Cust; onBack: () => void }) {
           )}
           <div className={`flex ${m.direction === "customer" ? "justify-start" : "justify-end"}`}>
             <div className={`max-w-[80%] xl:max-w-[65%] whitespace-pre-wrap break-words px-3 py-2 text-sm shadow-sm ${m.direction === "customer" ? "rounded-2xl rounded-tr-sm bg-bubble-in" : m.direction === "agent" ? "rounded-2xl rounded-tl-sm bg-bubble-agent" : "rounded-2xl rounded-tl-sm bg-bubble-out"}`}>
-              {m.kind === "pdf" ? <span className="flex items-center gap-2 font-medium"><FileText className="h-5 w-5 text-destructive" />{m.text}</span>
+              {(m as { src?: string | null }).src || ["pdf", "image", "audio", "video", "document", "sticker"].includes(m.kind) ? <MediaBubble m={m as MediaMsg} />
                 : m.kind === "button" ? <span className="rounded border border-primary/40 px-2 py-0.5 text-primary">🔘 {m.text}</span>
                 : m.text}
               <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
@@ -496,5 +496,43 @@ function Chat({ pw, c, onBack }: { pw: string; c: Cust; onBack: () => void }) {
       </form>
       {err && <p className="px-3 pb-2 text-xs text-destructive">{err}</p>}
     </>
+  );
+}
+
+
+type MediaMsg = { kind: string; text: string; src?: string | null; mime?: string | null; file_name?: string | null };
+
+function MediaBubble({ m }: { m: MediaMsg }) {
+  const [zoom, setZoom] = useState(false);
+  const src = m.src ?? null;
+  const caption = m.text.replace(/^📎\s*(image|audio|video|document|sticker|voice)\s*(—\s*)?/i, "").trim();
+  const kind = m.kind === "document" && /pdf/i.test(m.mime ?? m.file_name ?? "") ? "pdf" : m.kind;
+  if (!src) {
+    return <span className="flex items-center gap-2 font-medium"><FileText className="h-5 w-5 text-destructive" />{m.text}<span className="text-[10px] font-normal text-muted-foreground">(الملف غير متاح)</span></span>;
+  }
+  if (kind === "image" || kind === "sticker") {
+    return (
+      <div>
+        <button type="button" onClick={() => setZoom(true)} className="block overflow-hidden rounded-lg">
+          <img src={src} alt={caption || "صورة"} loading="lazy" className="max-h-64 w-auto max-w-full object-cover" />
+        </button>
+        {caption && <div className="mt-1">{caption}</div>}
+        {zoom && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/80 p-4" onClick={() => setZoom(false)}>
+            <img src={src} alt={caption || "صورة"} className="max-h-full max-w-full rounded-lg" />
+          </div>
+        )}
+      </div>
+    );
+  }
+  if (kind === "audio") return <audio controls preload="none" src={src} className="h-10 w-60 max-w-full" />;
+  if (kind === "video") return <div><video controls preload="metadata" src={src} className="max-h-64 max-w-full rounded-lg" />{caption && <div className="mt-1">{caption}</div>}</div>;
+  const name = m.file_name || caption || m.text || "ملف";
+  return (
+    <a href={src} target="_blank" rel="noreferrer" className="flex min-w-[200px] items-center gap-3 rounded-lg bg-background/60 p-2 no-underline hover:bg-background/80">
+      <span className="flex h-10 w-9 shrink-0 items-center justify-center rounded bg-destructive text-[10px] font-bold text-destructive-foreground">{kind === "pdf" ? "PDF" : "FILE"}</span>
+      <span className="min-w-0 flex-1 truncate font-medium">{name}</span>
+      <Download className="h-4 w-4 shrink-0 text-muted-foreground" />
+    </a>
   );
 }

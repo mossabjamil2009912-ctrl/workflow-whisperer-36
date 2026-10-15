@@ -112,24 +112,36 @@ export type Database = {
           created_at: string
           customer_id: string
           direction: string
+          file_name: string | null
           id: string
           kind: string
+          media_id: string | null
+          media_url: string | null
+          mime: string | null
           text: string
         }
         Insert: {
           created_at?: string
           customer_id: string
           direction?: string
+          file_name?: string | null
           id?: string
           kind?: string
+          media_id?: string | null
+          media_url?: string | null
+          mime?: string | null
           text?: string
         }
         Update: {
           created_at?: string
           customer_id?: string
           direction?: string
+          file_name?: string | null
           id?: string
           kind?: string
+          media_id?: string | null
+          media_url?: string | null
+          mime?: string | null
           text?: string
         }
         Relationships: [
