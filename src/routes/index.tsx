@@ -200,6 +200,8 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
   const [dark, setDark] = useState(false);
   useEffect(() => { const d = localStorage.getItem("actes_dark") === "1"; setDark(d); document.documentElement.classList.toggle("dark", d); }, []);
   const toggleDark = () => { const d = !dark; setDark(d); localStorage.setItem("actes_dark", d ? "1" : "0"); document.documentElement.classList.toggle("dark", d); };
+  const [wide, setWide] = useState(false);
+  useEffect(() => { const mq = window.matchMedia("(min-width: 1024px)"); const f = () => setWide(mq.matches); f(); mq.addEventListener("change", f); return () => mq.removeEventListener("change", f); }, []);
 
   const statStyle: Record<string, { icon: typeof User; c: string }> = {
     all: { icon: User, c: "s-purple" }, quote: { icon: FileText, c: "s-green" }, sld: { icon: ImageIcon, c: "s-blue" },
@@ -227,7 +229,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-6xl flex-1 space-y-3 p-3 md:p-4">
+      <div className="mx-auto w-full max-w-7xl flex-1 space-y-3 p-3 md:p-4">
         <nav className="flex items-center gap-2 rounded-xl border border-border bg-card p-1.5 shadow-sm">
           <div className="grid flex-1 grid-cols-4 gap-1">
             {tabs.map((t) => (
@@ -253,6 +255,8 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
         {view === "orders" ? <div className="rounded-xl border border-border bg-card"><Orders pw={pw} /></div>
         : view === "tickets" ? <div className="rounded-xl border border-border bg-card"><Tickets pw={pw} /></div>
         : view === "catalog" ? <div className="rounded-xl border border-border bg-card"><Catalog pw={pw} /></div> : <>
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:gap-4">
+        <div className="min-w-0 space-y-3">
         <div className="grid grid-cols-3 gap-2 rounded-xl border border-border bg-card p-2 shadow-sm sm:grid-cols-5 md:gap-3 md:p-2.5">
           {stats.map((s) => { const st = statStyle[s.key] ?? statStyle["all"]!; const Ic = st.icon; return (
             <button key={s.label} onClick={() => setFilter(filter === s.key ? "all" : s.key)}
@@ -304,7 +308,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
           </div>
           <ul className="overflow-hidden rounded-lg border border-border">
             {shown.map((c) => (
-              <li key={c.id} onClick={() => setOpenId(c.id)} className={`flex cursor-pointer items-center hover:bg-muted/60 gap-3 border-b border-border px-3 py-2.5 last:border-b-0 ${openId === c.id ? "bg-muted" : ""}`}>
+              <li key={c.id} onClick={() => setOpenId(c.id)} className={`flex cursor-pointer items-center gap-3 border-b border-r-4 border-b-border px-3 py-2.5 transition last:border-b-0 hover:bg-muted/60 ${openId === c.id ? "border-r-primary bg-primary/10" : "border-r-transparent"}`}>
                 <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
                   <User className="h-5 w-5" /><span className="absolute bottom-0 left-0 h-2.5 w-2.5 rounded-full border-2 border-card bg-s-green" />
                 </div>
@@ -331,6 +335,26 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
             )}
           </ul>
         </div>
+        </div>
+        {wide && (
+          <aside className="sticky top-3 hidden h-[calc(100vh-1.5rem)] lg:flex">
+            {open ? (
+              <div className="relative flex h-full">
+                <Chat pw={pw} c={open} onBack={() => setOpenId(null)} onInfo={() => setInfo(true)} />
+                {info && <Details pw={pw} c={open} orders={openOrders} drawer onClose={() => setInfo(false)} />}
+              </div>
+            ) : (
+              <div className="relative flex aspect-[9/19] h-full flex-col items-center justify-center gap-3 overflow-hidden rounded-[2.6rem] border-[10px] border-phone bg-phone text-wa-muted shadow-2xl">
+                <div className="absolute left-1/2 top-1.5 h-5 w-24 -translate-x-1/2 rounded-full bg-background/10" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-wa-text/10 via-transparent to-transparent" />
+                <img src={logoClean} alt="" className="h-14 w-auto opacity-30" />
+                <MessageCircle className="h-8 w-8 opacity-40" />
+                <span className="px-6 text-center text-xs opacity-60">اختر محادثة من القائمة لعرضها هنا</span>
+              </div>
+            )}
+          </aside>
+        )}
+        </div>
         </>}
       </div>
       <footer className="relative overflow-hidden bg-ink py-2.5 text-center text-xs font-semibold text-ink-foreground">
@@ -340,7 +364,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
         <span className="absolute left-[9.5rem] top-1/2 hidden -translate-y-1/2 text-primary md:block">⌁</span>
       </footer>
 
-      {open && (
+      {open && !wide && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 md:py-3" onClick={() => setOpenId(null)}>
           <div className="relative flex h-full w-full justify-center gap-4 overflow-hidden md:w-auto" onClick={(e) => e.stopPropagation()}>
             <main className="flex min-w-0 flex-1 flex-col">
