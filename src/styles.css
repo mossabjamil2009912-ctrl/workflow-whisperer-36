@@ -227,6 +227,16 @@
   --color-bubble-out: var(--bubble-out);
   --color-bubble-agent: var(--bubble-agent);
   --color-chat-bg: var(--chat-bg);
+  --color-wa-bar: oklch(0.17 0 0);
+  --color-wa-bot: oklch(0.27 0.005 250);
+  --color-wa-me: oklch(0.42 0.14 255);
+  --color-wa-agent: oklch(0.36 0.09 160);
+  --color-wa-text: oklch(0.97 0 0);
+  --color-wa-muted: oklch(0.75 0.01 250);
+  --color-wa-link: oklch(0.68 0.15 245);
+  --color-wa-line: oklch(0.38 0.005 250);
+  --color-wa-mic: oklch(0.58 0.2 255);
+  --color-phone: oklch(0.12 0 0);
   --color-st-quote: var(--st-quote);
   --color-st-quote-fg: var(--st-quote-fg);
   --color-st-buy: var(--st-buy);
