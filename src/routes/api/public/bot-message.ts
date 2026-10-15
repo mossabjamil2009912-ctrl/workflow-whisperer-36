@@ -30,6 +30,7 @@ export const Route = createFileRoute("/api/public/bot-message")({
         try { raw = await request.json(); } catch { return new Response("Bad JSON", { status: 400 }); }
         const items = Array.isArray(raw) ? raw : [raw];
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const batchAt = Date.now(); let seq = 0;
 
         for (const it of items) {
           const p = Body.safeParse(it);
@@ -72,7 +73,9 @@ export const Route = createFileRoute("/api/public/bot-message")({
             id = ins.id;
           }
           if (d.text.trim()) {
+            // توقيت تصاعدي داخل الدفعة يحفظ نفس ترتيب واتساب
             await supabaseAdmin.from("messages").insert({
+              created_at: new Date(batchAt + seq++).toISOString(),
               customer_id: id!, direction: d.direction, kind: d.kind, text: d.text,
               media_id: d.media_id ?? null, media_url: d.media_url ?? null, mime: d.mime ?? null, file_name: d.file_name ?? null,
             });
