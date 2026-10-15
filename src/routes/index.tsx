@@ -459,7 +459,7 @@ function Chat({ pw, c, onBack }: { pw: string; c: Cust; onBack: () => void }) {
             <div className={`max-w-[80%] xl:max-w-[65%] whitespace-pre-wrap break-words px-3 py-2 text-sm shadow-sm ${m.direction === "customer" ? "rounded-2xl rounded-tr-sm bg-bubble-in" : m.direction === "agent" ? "rounded-2xl rounded-tl-sm bg-bubble-agent" : "rounded-2xl rounded-tl-sm bg-bubble-out"}`}>
               {(m as { src?: string | null }).src || ["pdf", "image", "audio", "video", "document", "sticker"].includes(m.kind) ? <MediaBubble m={m as MediaMsg} />
                 : m.kind === "button" ? <span className="rounded border border-primary/40 px-2 py-0.5 text-primary">🔘 {m.text}</span>
-                : m.text}
+                : <WaText text={m.text} />}
               <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
                 {m.direction === "bot" && <><Bot className="h-3 w-3" />البوت ·</>}
                 {m.direction === "agent" && <><User className="h-3 w-3" />الموظف ·</>}
