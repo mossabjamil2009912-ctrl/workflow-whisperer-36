@@ -47,14 +47,16 @@ export const getMessages = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     check(data.pw);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [, { data: rows, error }] = await Promise.all([
+    const [, { data: desc, error }] = await Promise.all([
       supabaseAdmin.from("customers").update({ unread: 0 }).eq("id", data.id).gt("unread", 0),
       supabaseAdmin.from("messages").select("*").eq("customer_id", data.id)
-        .order("created_at", { ascending: true }).limit(1000),
+        .order("created_at", { ascending: false }).limit(1000),
     ]);
     if (error) throw new Error(error.message);
+    // أحدث 1000 رسالة (كانت تُجلب الأقدم فتختفي الرسائل الجديدة في المحادثات الطويلة)
+    const rows = (desc ?? []).reverse();
     const { mediaToken } = await import("./media-token.server");
-    return Promise.all((rows ?? []).map(async (r) => ({
+    return Promise.all(rows.map(async (r) => ({
       ...r,
       src: r.media_url ? r.media_url
         : r.media_id ? `/api/public/crm-media?id=${encodeURIComponent(r.media_id)}&t=${await mediaToken(r.media_id)}${r.file_name ? `&n=${encodeURIComponent(r.file_name)}` : ""}`
