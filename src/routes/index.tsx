@@ -337,7 +337,12 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
         </div>
         </div>
         {wide && (
-          <aside className="sticky top-3 hidden h-[calc(100vh-1.5rem)] lg:flex">
+          <aside className="sticky top-3 hidden h-[calc(100vh-1.5rem)] overscroll-contain lg:flex"
+            onWheel={(e) => {
+              const box = (e.currentTarget.querySelector(".overflow-y-auto") as HTMLElement | null);
+              if (box && !box.contains(e.target as Node)) box.scrollTop += e.deltaY;
+            }}
+            ref={(el) => { if (el && !el.dataset.w) { el.dataset.w = "1"; el.addEventListener("wheel", (ev) => ev.preventDefault(), { passive: false }); } }}>
             {open ? (
               <div className="relative flex h-full">
                 <Chat pw={pw} c={open} onBack={() => setOpenId(null)} onInfo={() => setInfo(true)} />
@@ -493,7 +498,7 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
         </div>
         {paused && <div className="bg-destructive px-3 py-1 text-center text-[10px] text-destructive-foreground">البوت متوقف — أنت تتحدث مع العميل مباشرة</div>}
         {c.system && <div className="flex items-center gap-1.5 bg-wa-bot px-3 py-1 text-[10px] text-wa-muted"><Sun className="h-3 w-3 shrink-0" /><span className="truncate">{c.system}</span></div>}
-        <div className="flex-1 space-y-1.5 overflow-y-auto bg-cover bg-center p-2.5 text-[12.5px]" style={{ backgroundImage: `url(${waBg.url})` }}>
+        <div className="flex-1 space-y-1.5 overflow-y-auto overscroll-contain bg-cover bg-center p-2.5 text-[12.5px]" style={{ backgroundImage: `url(${waBg.url})` }}>
         {msgs.map((m, i) => (
           <div key={m.id}>
           {(i === 0 || new Date(msgs[i - 1]!.created_at).toDateString() !== new Date(m.created_at).toDateString()) && (
