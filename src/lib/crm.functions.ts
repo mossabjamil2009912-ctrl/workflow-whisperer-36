@@ -74,9 +74,9 @@ export const getMessages = createServerFn({ method: "POST" })
     const isFile = (r: (typeof all)[number]) => r.direction === "bot" && ["pdf", "document", "image", "video"].includes(r.kind);
     const ordered: typeof rows = [];
     for (let i = 0; i < rows.length; ) {
-      if (rows[i].direction !== "bot") { ordered.push(rows[i++]); continue; }
+      if (rows[i]!.direction !== "bot") { ordered.push(rows[i++]!); continue; }
       let j = i + 1;
-      while (j < rows.length && rows[j].direction === "bot" && near(rows[j - 1], rows[j])) j++;
+      while (j < rows.length && rows[j]!.direction === "bot" && near(rows[j - 1]!, rows[j]!)) j++;
       const run = rows.slice(i, j);
       ordered.push(...run.filter(isFile), ...run.filter((r) => !isFile(r)));
       i = j;
