@@ -33,7 +33,7 @@ import { Tickets, useTickets } from "@/components/Tickets";
 import { Catalog } from "@/components/Catalog";
 import logo from "@/assets/actes-logo.png.asset.json";
 import logoClean from "@/assets/actes-logo-clean.png";
-import chatBg from "@/assets/actes-chat-bg.webp";
+import waBg from "@/assets/actes-wa-bg.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -467,38 +467,46 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
       </header>
       {paused && <div className="bg-destructive px-3 py-1.5 text-center text-xs text-destructive-foreground">البوت متوقف لهذا العميل — أنت تتحدث معه مباشرة</div>}
       {c.system && <div className="flex items-center gap-2 bg-secondary px-3 py-2 text-xs text-secondary-foreground"><Sun className="h-4 w-4" />{c.system}</div>}
-      <div className="flex-1 space-y-2 overflow-y-auto bg-chat-bg bg-cover bg-center bg-no-repeat p-3"
-        style={{ backgroundImage: `url(${chatBg})` }}>
+      <div className="flex flex-1 justify-center overflow-hidden bg-muted/40 p-2 sm:p-4">
+      <div className="relative flex h-full w-full max-w-[400px] flex-col overflow-hidden rounded-[2.6rem] border-[10px] border-phone bg-phone shadow-2xl">
+        <div className="absolute left-1/2 top-1.5 z-20 h-5 w-24 -translate-x-1/2 rounded-full bg-phone" />
+        <div className="flex items-center justify-between bg-wa-bar px-5 pb-1 pt-2 text-[11px] text-wa-text">
+          <span>{new Date().toLocaleTimeString("ar", { hour: "numeric", minute: "2-digit" })}</span><span dir="ltr">▂▄▆ 5G 🔋</span>
+        </div>
+        <div className="flex items-center gap-2 bg-wa-bar px-3 py-2 text-wa-text">
+          <ArrowRight className="h-5 w-5" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-wa-me text-sm font-bold">{(c.name ?? "#")[0]}</div>
+          <div className="min-w-0 flex-1 leading-tight"><div className="truncate text-sm font-semibold">ACTES API</div><div className="text-[11px] text-wa-muted">حساب تجاري</div></div>
+          <span className="text-lg">⋮</span>
+        </div>
+        <div className="flex-1 space-y-2 overflow-y-auto bg-cover bg-center p-3" style={{ backgroundImage: `url(${waBg.url})` }}>
         {msgs.map((m, i) => (
           <div key={m.id}>
           {(i === 0 || new Date(msgs[i - 1]!.created_at).toDateString() !== new Date(m.created_at).toDateString()) && (
-            <div className="my-2 flex justify-center"><span className="rounded-full bg-card px-3 py-0.5 text-[11px] text-muted-foreground shadow-sm">{dayLabel(m.created_at)}</span></div>
+            <div className="my-2 flex justify-center"><span className="rounded-lg bg-wa-bot px-3 py-0.5 text-[11px] text-wa-muted shadow">{dayLabel(m.created_at)}</span></div>
           )}
-          <div className={`flex ${m.direction === "customer" ? "justify-start" : "justify-end"}`}>
-            <div className={`max-w-[80%] xl:max-w-[65%] break-words px-3 py-2 text-sm shadow-sm ${m.direction === "customer" ? "rounded-2xl rounded-tr-sm bg-bubble-in" : m.direction === "agent" ? "rounded-2xl rounded-tl-sm bg-bubble-agent" : "rounded-2xl rounded-tl-sm bg-bubble-out"}`}>
+          <div className={`flex ${m.direction === "customer" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[85%] break-words px-3 py-2 text-sm text-wa-text shadow ${m.direction === "customer" ? "rounded-2xl rounded-tl-sm bg-wa-me" : m.direction === "agent" ? "rounded-2xl rounded-tr-sm bg-wa-agent" : "rounded-2xl rounded-tr-sm bg-wa-bot"}`}>
               {(m as { src?: string | null }).src || ["pdf", "image", "audio", "video", "document", "sticker"].includes(m.kind) ? <MediaBubble m={m as MediaMsg} />
-                : m.kind === "button" ? <span className="rounded border border-primary/40 px-2 py-0.5 text-primary">🔘 {m.text}</span>
                 : <WaText text={m.text} />}
-              <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
-                {m.direction === "bot" && <><Bot className="h-3 w-3" />البوت ·</>}
+              <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-wa-muted">
                 {m.direction === "agent" && <><User className="h-3 w-3" />الموظف ·</>}
                 <span>{fmt(m.created_at)}</span>
+                {m.direction === "customer" && <span>✓✓</span>}
               </div>
             </div>
           </div>
           </div>
         ))}
         <div ref={end} />
-      </div>
+        </div>
       {(() => {
         const lastIn = [...msgs].reverse().find((m) => m.direction === "customer")?.created_at ?? c.last_customer_at;
         const left = lastIn ? 864e5 - (Date.now() - new Date(lastIn).getTime()) : -1;
-        return left > 0
-          ? <div className="flex items-center gap-1.5 border-t border-border bg-st-buy px-3 py-1 text-[11px] text-st-buy-fg"><Clock className="h-3 w-3" />متاح للإرسال — متبقي {Math.floor(left / 36e5)} ساعة و{Math.floor((left % 36e5) / 6e4)} دقيقة</div>
-          : <div className="flex items-center gap-1.5 border-t border-border bg-st-human px-3 py-1 text-[11px] text-st-human-fg"><Clock className="h-3 w-3" />انتهت مهلة 24 ساعة — الرسالة لن تصل حتى يراسلك العميل أولاً</div>;
+        return <div className="flex items-center justify-center gap-1.5 bg-wa-bar px-3 py-1 text-[10px] text-wa-muted"><Clock className="h-3 w-3" />{left > 0 ? `متاح للإرسال — متبقي ${Math.floor(left / 36e5)} ساعة و${Math.floor((left % 36e5) / 6e4)} دقيقة` : "انتهت مهلة 24 ساعة — لن تصل الرسالة حتى يراسلك العميل"}</div>;
       })()}
       <form
-        className="flex items-end gap-2 border-t border-border bg-card p-2"
+        className="flex items-end gap-2 bg-wa-bar p-2"
         onSubmit={async (e) => {
           e.preventDefault();
           const t = text.trim(); if (!t || sending) return;
@@ -508,12 +516,15 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
           finally { setSending(false); }
         }}
       >
-        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1} placeholder="اكتب رسالة للعميل..."
-          className="max-h-32 min-h-10 flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring" />
-        <button disabled={sending || !text.trim()} aria-label="إرسال" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground disabled:opacity-50">
+        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1} placeholder="مراسلة"
+          className="max-h-28 min-h-10 flex-1 resize-none rounded-3xl bg-wa-bot px-4 py-2 text-sm text-wa-text outline-none placeholder:text-wa-muted" />
+        <button disabled={sending || !text.trim()} aria-label="إرسال" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-wa-mic text-wa-text disabled:opacity-60">
           <Send className="h-4 w-4 -scale-x-100" />
         </button>
       </form>
+      <div className="flex justify-center bg-wa-bar pb-1.5 pt-1"><div className="h-1 w-28 rounded-full bg-wa-muted" /></div>
+      </div>
+      </div>
       {err && <p className="px-3 pb-2 text-xs text-destructive">{err}</p>}
     </>
   );
