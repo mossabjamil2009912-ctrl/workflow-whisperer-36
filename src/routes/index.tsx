@@ -216,8 +216,8 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
   ];
 
   return (
-    <div dir="rtl" className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="relative overflow-hidden bg-ink px-4 py-3 text-ink-foreground md:px-8">
+    <div dir="rtl" className="flex min-h-screen flex-col bg-background text-foreground lg:h-screen lg:overflow-hidden">
+      <header className="relative overflow-hidden bg-ink px-4 py-3 text-ink-foreground md:px-8 lg:py-1">
         <div className="pointer-events-none absolute -top-10 left-[30%] h-40 w-1.5 rotate-[35deg] bg-primary" />
         <div className="pointer-events-none absolute -top-10 left-[31.5%] h-40 w-px rotate-[35deg] bg-primary/50" />
         <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-3">
@@ -225,16 +225,16 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"><MessageCircle className="h-4 w-4" /></span>
             محادثات العملاء
           </h1>
-          <img src={logoClean} alt="ACTES أكتس" className="h-10 w-auto shrink-0 md:h-12" />
+          <img src={logoClean} alt="ACTES أكتس" className="h-10 w-auto shrink-0 md:h-12 lg:h-8" />
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-7xl flex-1 space-y-3 p-3 md:p-4">
+      <div className="mx-auto w-full max-w-7xl flex-1 space-y-3 p-3 md:p-4 lg:flex lg:min-h-0 lg:flex-col lg:space-y-2 lg:p-2">
         <nav className="flex items-center gap-2 rounded-xl border border-border bg-card p-1.5 shadow-sm">
           <div className="grid flex-1 grid-cols-4 gap-1">
             {tabs.map((t) => (
               <button key={t.k} onClick={() => { setView(t.k); if (t.k !== "chats") setOpenId(null); }}
-                className={`relative flex flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold md:flex-row md:gap-2 md:py-2.5 md:text-sm ${view === t.k ? "bg-primary text-primary-foreground shadow" : "hover:bg-muted"}`}>
+                className={`relative flex flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold md:flex-row md:gap-2 md:py-2.5 md:text-sm lg:py-1.5 ${view === t.k ? "bg-primary text-primary-foreground shadow" : "hover:bg-muted"}`}>
                 <t.i className="h-4 w-4" />{t.l}
                 {t.n > 0 && <span className="absolute -top-1 left-1 rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">{t.n}</span>}
               </button>
@@ -252,14 +252,14 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
           </div>
         </nav>
 
-        {view === "orders" ? <div className="rounded-xl border border-border bg-card"><Orders pw={pw} /></div>
-        : view === "tickets" ? <div className="rounded-xl border border-border bg-card"><Tickets pw={pw} /></div>
-        : view === "catalog" ? <div className="rounded-xl border border-border bg-card"><Catalog pw={pw} /></div> : <>
-        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:gap-4">
-        <div className="min-w-0 space-y-3">
+        {view === "orders" ? <div className="rounded-xl border border-border bg-card lg:min-h-0 lg:flex-1 lg:overflow-y-auto"><Orders pw={pw} /></div>
+        : view === "tickets" ? <div className="rounded-xl border border-border bg-card lg:min-h-0 lg:flex-1 lg:overflow-y-auto"><Tickets pw={pw} /></div>
+        : view === "catalog" ? <div className="rounded-xl border border-border bg-card lg:min-h-0 lg:flex-1 lg:overflow-y-auto"><Catalog pw={pw} /></div> : <>
+        <div className="lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-3">
+        <div className="min-w-0 space-y-3 lg:flex lg:min-h-0 lg:flex-col">
 
 
-        <div className="space-y-2.5 rounded-xl border border-border bg-card p-2.5 shadow-sm">
+        <div className="space-y-2.5 rounded-xl border border-border bg-card p-2.5 shadow-sm lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:space-y-1.5 lg:p-2">
           <div className="flex flex-wrap gap-2">
             <div className="relative min-w-[12rem] flex-[2]">
               <Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -289,14 +289,14 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
               const Ic = s === "all" ? null : stageIcon[s];
               return (
               <button key={s} onClick={() => setFilter(s)}
-                className={`relative mt-2 flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs md:text-sm ${filter === s ? "bg-primary font-semibold text-primary-foreground" : s === "all" ? "bg-muted" : (stageClass[s] ?? "bg-muted")}`}>
+                className={`relative mt-2 lg:mt-1.5 flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs md:text-sm ${filter === s ? "bg-primary font-semibold text-primary-foreground" : s === "all" ? "bg-muted" : (stageClass[s] ?? "bg-muted")}`}>
                 {Ic && <Ic className="h-4 w-4" />}{s === "all" ? "الكل" : STAGES[s]}
                 <span className="rounded-full bg-background/70 px-1.5 text-[11px] font-bold text-foreground">{s === "all" ? customers.length : customers.filter((c) => c.stage === s).length}</span>
                 {n > 0 && <span className="absolute -top-2 -left-1 min-w-[18px] animate-pulse rounded-full bg-destructive px-1 text-[10px] font-bold leading-[18px] text-destructive-foreground">{n}</span>}
               </button>
             );})}
           </div>
-          <ul className="overflow-hidden rounded-lg border border-border">
+          <ul className="overflow-hidden rounded-lg border border-border lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain">
             {shown.map((c) => (
               <li key={c.id} onClick={() => setOpenId(c.id)} className={`flex cursor-pointer items-center gap-3 border-b border-r-4 border-b-border px-3 py-2.5 transition last:border-b-0 hover:bg-muted/60 ${openId === c.id ? "border-r-primary bg-primary/10" : "border-r-transparent"}`}>
                 <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
@@ -327,7 +327,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
         </div>
         </div>
         {wide && (
-          <aside className="sticky top-3 hidden h-[calc(100vh-1.5rem)] overscroll-contain lg:flex"
+          <aside className="hidden h-full min-h-0 overscroll-contain lg:flex"
             onWheel={(e) => {
               const box = (e.currentTarget.querySelector(".overflow-y-auto") as HTMLElement | null);
               const inner = (e.target as HTMLElement).closest?.(".overflow-y-auto") as HTMLElement | null;
@@ -353,7 +353,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
         </div>
         </>}
       </div>
-      <footer className="relative overflow-hidden bg-ink py-2.5 text-center text-xs font-semibold text-ink-foreground">
+      <footer className="relative overflow-hidden bg-ink py-2.5 lg:hidden text-center text-xs font-semibold text-ink-foreground">
         <div className="pointer-events-none absolute -bottom-6 right-[8%] h-16 w-1.5 rotate-[35deg] bg-primary" />
         ACTES — لأنظمة الطاقة وحلولها
         <span className="absolute left-6 top-1/2 hidden h-px w-32 -translate-y-1/2 bg-ink-foreground/30 md:block" />
