@@ -24,9 +24,16 @@ export const Route = createFileRoute("/api/public/bot-media")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data: c } = await supabaseAdmin.from("customers").select("id").eq("phone", d.phone.replace(/[^\d+]/g, "")).maybeSingle();
         if (!c) return Response.json({ ok: false });
-        const { data: m } = await supabaseAdmin.from("messages").select("id")
-          .eq("customer_id", c.id).eq("direction", "bot").eq("kind", "pdf").eq("text", d.text).is("media_id", null)
-          .order("created_at", { ascending: false }).limit(1).maybeSingle();
+        // ننتظر قليلاً حتى يُسجَّل الحوار نفسه، حتى لا تسبق فقاعة الملف رسالة العميل
+        let m: { id: string } | null = null;
+        for (let i = 0; i < 4 && !m; i++) {
+          if (i) await new Promise((r) => setTimeout(r, 1500));
+          const since = new Date(Date.now() - 10 * 60000).toISOString();
+          const { data } = await supabaseAdmin.from("messages").select("id")
+            .eq("customer_id", c.id).eq("direction", "bot").eq("kind", "pdf").eq("text", d.text).is("media_id", null)
+            .gte("created_at", since).order("created_at", { ascending: false }).limit(1).maybeSingle();
+          m = data;
+        }
         const patch = { media_id: d.media_id, file_name: d.file_name ?? null, mime: d.mime ?? "application/pdf" };
         if (m) await supabaseAdmin.from("messages").update(patch).eq("id", m.id);
         else await supabaseAdmin.from("messages").insert({ customer_id: c.id, direction: "bot", kind: "pdf", text: d.text, ...patch });

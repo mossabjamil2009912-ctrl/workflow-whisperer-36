@@ -55,15 +55,16 @@ export const getMessages = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     // أحدث 1000 رسالة (كانت تُجلب الأقدم فتختفي الرسائل الجديدة في المحادثات الطويلة)
     const all = (desc ?? []).reverse();
-    // البوت يسجّل فقاعة العرض بعد ربط الملف أحياناً، فتتكرر فقاعة بلا ملف: نحذف المكرر ونستعير الملف من نفس العرض
+    // فقاعة الملف قد تُسجَّل قبل رسالة العميل (سباق توقيت): نحتفظ بالفقاعة التي في مكانها الصحيح ونعطيها الملف
+    const isPdf = (r: (typeof all)[number]) => r.direction === "bot" && r.kind === "pdf";
+    const near = (a: (typeof all)[number], b: (typeof all)[number]) => Math.abs(new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) < 120000;
     const withMedia = new Map<string, (typeof all)[number]>();
-    for (const r of all) if (r.direction === "bot" && r.kind === "pdf" && r.media_id) withMedia.set(r.text, r);
-    const rows = all.filter((r, i) => {
-      if (!(r.direction === "bot" && r.kind === "pdf" && !r.media_id)) return true;
-      const near = all.find((o, j) => j !== i && o.text === r.text && o.media_id && Math.abs(new Date(o.created_at).getTime() - new Date(r.created_at).getTime()) < 120000);
-      return !near;
+    for (const r of all) if (isPdf(r) && r.media_id) withMedia.set(r.text, r);
+    const rows = all.filter((r) => {
+      if (!(isPdf(r) && r.media_id)) return true;
+      return !all.some((o) => o !== r && isPdf(o) && !o.media_id && o.text === r.text && near(o, r));
     }).map((r) => {
-      if (r.direction === "bot" && r.kind === "pdf" && !r.media_id && !r.media_url) {
+      if (isPdf(r) && !r.media_id && !r.media_url) {
         const o = withMedia.get(r.text);
         if (o) return { ...r, media_id: o.media_id, file_name: o.file_name, mime: o.mime };
       }
