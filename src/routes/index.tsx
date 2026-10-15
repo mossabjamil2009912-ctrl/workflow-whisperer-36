@@ -220,37 +220,35 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
       <header className="relative overflow-hidden bg-ink px-4 py-3 text-ink-foreground md:px-8 lg:py-1">
         <div className="pointer-events-none absolute -top-10 left-[30%] h-40 w-1.5 rotate-[35deg] bg-primary" />
         <div className="pointer-events-none absolute -top-10 left-[31.5%] h-40 w-px rotate-[35deg] bg-primary/50" />
-        <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-3">
-          <h1 className="flex items-center gap-2 text-base font-bold md:text-xl">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"><MessageCircle className="h-4 w-4" /></span>
+        <div className="relative mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 md:flex-nowrap">
+          <h1 className="flex shrink-0 items-center gap-2 text-sm font-bold md:text-lg">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground"><MessageCircle className="h-4 w-4" /></span>
             محادثات العملاء
           </h1>
-          <img src={logoClean} alt="ACTES أكتس" className="h-10 w-auto shrink-0 md:h-12 lg:h-8" />
-        </div>
-      </header>
-
-      <div className="mx-auto w-full max-w-7xl flex-1 space-y-3 p-3 md:p-4 lg:flex lg:min-h-0 lg:flex-col lg:space-y-2 lg:p-2">
-        <nav className="flex items-center gap-2 rounded-xl border border-border bg-card p-1.5 shadow-sm">
-          <div className="grid flex-1 grid-cols-4 gap-1">
+          <nav className="order-last flex w-full items-center gap-1 md:order-none md:w-auto md:flex-1 md:justify-center">
             {tabs.map((t) => (
               <button key={t.k} onClick={() => { setView(t.k); if (t.k !== "chats") setOpenId(null); }}
-                className={`relative flex flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold md:flex-row md:gap-2 md:py-2.5 md:text-sm lg:py-1.5 ${view === t.k ? "bg-primary text-primary-foreground shadow" : "hover:bg-muted"}`}>
+                className={`relative flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold md:flex-none md:px-3 md:text-sm ${view === t.k ? "bg-primary text-primary-foreground shadow" : "hover:bg-ink-foreground/10"}`}>
                 <t.i className="h-4 w-4" />{t.l}
                 {t.n > 0 && <span className="absolute -top-1 left-1 rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">{t.n}</span>}
               </button>
             ))}
-          </div>
-          <div className="flex shrink-0 items-center gap-1 border-r border-border pr-2">
-            <button onClick={toggleDark} aria-label={dark ? "الوضع الفاتح" : "الوضع الليلي"} className="rounded-md p-1.5 hover:bg-muted">
+          </nav>
+          <div className="flex shrink-0 items-center gap-1">
+            <button onClick={toggleDark} aria-label={dark ? "الوضع الفاتح" : "الوضع الليلي"} className="rounded-md p-1.5 hover:bg-ink-foreground/10">
               {dark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </button>
             <button onClick={() => { const m = !muted; setMuted(m); localStorage.setItem("actes_mute", m ? "1" : "0"); if (!m) playChime(); }}
-              aria-label={muted ? "تشغيل صوت التنبيه" : "كتم صوت التنبيه"} className="rounded-md p-1.5 hover:bg-muted">
+              aria-label={muted ? "تشغيل صوت التنبيه" : "كتم صوت التنبيه"} className="rounded-md p-1.5 hover:bg-ink-foreground/10">
               {muted ? <BellOff className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
             </button>
             <button onClick={onLogout} className="px-1 text-xs md:text-sm">خروج</button>
+            <img src={logoClean} alt="ACTES أكتس" className="h-9 w-auto shrink-0 md:h-10 lg:h-8" />
           </div>
-        </nav>
+        </div>
+      </header>
+
+      <div className="mx-auto w-full max-w-7xl flex-1 space-y-3 p-3 md:p-4 lg:flex lg:min-h-0 lg:flex-col lg:space-y-2 lg:p-2">
 
         {view === "orders" ? <div className="rounded-xl border border-border bg-card lg:min-h-0 lg:flex-1 lg:overflow-y-auto"><Orders pw={pw} /></div>
         : view === "tickets" ? <div className="rounded-xl border border-border bg-card lg:min-h-0 lg:flex-1 lg:overflow-y-auto"><Tickets pw={pw} /></div>
