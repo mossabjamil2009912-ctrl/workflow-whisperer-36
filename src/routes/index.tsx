@@ -470,23 +470,17 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
       <div className="flex h-full flex-1 justify-center overflow-hidden md:py-0">
       <div className="relative flex h-full w-full flex-col overflow-hidden bg-phone shadow-2xl md:aspect-[9/19] md:w-auto md:rounded-[2.6rem] md:border-[10px] md:border-phone">
         <div className="absolute left-1/2 top-1.5 z-20 hidden h-5 w-24 -translate-x-1/2 rounded-full bg-phone md:block" />
-        <div className="flex items-center justify-between bg-wa-bar px-5 pb-1 pt-2 text-[10px] text-wa-text">
-          <span>{new Date().toLocaleTimeString("ar", { hour: "numeric", minute: "2-digit" })}</span><span dir="ltr">▂▄▆ 5G 🔋</span>
-        </div>
-        <div className="flex items-center gap-1.5 bg-wa-bar px-2 py-1.5 text-wa-text">
-          <button onClick={onBack} aria-label="رجوع"><ArrowRight className="h-5 w-5" /></button>
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-wa-me text-xs font-bold">{(c.name ?? "#")[0]}</div>
+        <div className="flex items-center gap-1 bg-wa-bar px-2 py-1 text-wa-text md:pt-6">
+          <button onClick={onBack} aria-label="رجوع" className="lg:hidden"><ArrowRight className="h-4 w-4" /></button>
           <div className="min-w-0 flex-1 leading-tight">
-            <div className="truncate text-[13px] font-semibold">{c.name || "عميل"}</div>
-            <div dir="ltr" className="truncate text-right text-[10px] text-wa-muted">+{c.phone.replace(/^\+/, "")}{c.city ? ` · ${c.city}` : ""}</div>
+            <div className="text-[11px] font-semibold">{c.name || "عميل"}</div>
+            <div dir="ltr" className="text-right text-[9.5px] text-wa-muted">+{c.phone.replace(/^\+/, "")}</div>
           </div>
           <button title={paused ? "تشغيل البوت" : "إيقاف البوت"} aria-label={paused ? "تشغيل البوت" : "إيقاف البوت"}
             onClick={async () => { const v = !paused; setPaused(v); try { await togglePause({ data: { pw, id: c.id, paused: v } }); } catch { setPaused(!v); } }}
-            className={`flex shrink-0 items-center justify-center rounded-full p-1.5 ${paused ? "bg-destructive text-destructive-foreground" : "hover:bg-wa-bot"}`}><Bot className="h-4 w-4" /></button>
-          {onInfo && <button onClick={onInfo} aria-label="تفاصيل العميل" className="shrink-0 rounded-full p-1.5 hover:bg-wa-bot"><Info className="h-4 w-4" /></button>}
+            className={`flex shrink-0 items-center justify-center rounded-full p-1 ${paused ? "bg-destructive text-destructive-foreground" : "hover:bg-wa-bot"}`}><Bot className="h-3.5 w-3.5" /></button>
+          {onInfo && <button onClick={onInfo} aria-label="تفاصيل العميل" className="shrink-0 rounded-full p-1 hover:bg-wa-bot"><Info className="h-3.5 w-3.5" /></button>}
         </div>
-        {paused && <div className="bg-destructive px-3 py-1 text-center text-[10px] text-destructive-foreground">البوت متوقف — أنت تتحدث مع العميل مباشرة</div>}
-        {c.system && <div className="flex items-center gap-1.5 bg-wa-bot px-3 py-1 text-[10px] text-wa-muted"><Sun className="h-3 w-3 shrink-0" /><span className="truncate">{c.system}</span></div>}
         <div className="flex-1 space-y-1.5 overflow-y-auto overscroll-contain bg-cover bg-center p-2.5 text-[12.5px]" style={{ backgroundImage: `url(${waBg.url})` }}>
         {msgs.map((m, i) => (
           <div key={m.id}>
