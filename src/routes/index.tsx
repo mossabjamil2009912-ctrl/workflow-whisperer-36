@@ -515,7 +515,7 @@ function MediaBubble({ m }: { m: MediaMsg }) {
   const caption = m.text.replace(/^📎\s*(image|audio|video|document|sticker|voice)\s*(—\s*)?/i, "").trim();
   const kind = m.kind === "document" && /pdf/i.test(m.mime ?? m.file_name ?? "") ? "pdf" : m.kind;
   if (!src) {
-    return <span className="flex items-center gap-2 font-medium"><FileText className="h-5 w-5 text-destructive" />{m.text}<span className="text-[10px] font-normal text-muted-foreground">(الملف غير متاح)</span></span>;
+    return <span className="flex items-center gap-1.5 text-[11px]"><FileText className="h-3.5 w-3.5 shrink-0 text-destructive" /><span className="truncate">{m.text}</span></span>;
   }
   if (kind === "image" || kind === "sticker") {
     return (
