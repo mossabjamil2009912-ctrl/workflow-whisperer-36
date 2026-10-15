@@ -398,7 +398,7 @@ function Details({ pw, c, orders, drawer, onClose }: { pw: string; c: Cust; draw
   useEffect(() => { setNote(c.notes ?? ""); setSaved(""); }, [c.id]);
   const t = sysType(c.system);
   return (
-    <aside className={drawer
+    <aside data-scroll className={drawer
       ? "absolute inset-y-0 left-0 z-10 flex w-[88%] max-w-sm flex-col gap-3 overflow-y-auto border-r border-border bg-background p-4 shadow-2xl"
       : "hidden w-80 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border bg-muted/40 p-4 xl:flex"}>
       {drawer && <button onClick={onClose} className="self-start rounded-lg border border-border px-3 py-1 text-xs hover:bg-muted">✕ إغلاق</button>}
