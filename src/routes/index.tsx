@@ -481,7 +481,6 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
             <div className="truncate text-[13px] font-semibold">{c.name || "عميل"}</div>
             <div dir="ltr" className="truncate text-right text-[10px] text-wa-muted">+{c.phone.replace(/^\+/, "")}{c.city ? ` · ${c.city}` : ""}</div>
           </div>
-          <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium ${stageClass[stage] ?? stageClass["new"]}`}>{STAGES[stage] ?? stage}</span>
           <button title={paused ? "تشغيل البوت" : "إيقاف البوت"} aria-label={paused ? "تشغيل البوت" : "إيقاف البوت"}
             onClick={async () => { const v = !paused; setPaused(v); try { await togglePause({ data: { pw, id: c.id, paused: v } }); } catch { setPaused(!v); } }}
             className={`flex shrink-0 items-center justify-center rounded-full p-1.5 ${paused ? "bg-destructive text-destructive-foreground" : "hover:bg-wa-bot"}`}><Bot className="h-4 w-4" /></button>
