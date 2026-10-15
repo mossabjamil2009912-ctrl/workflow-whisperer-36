@@ -502,13 +502,8 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
         ))}
         <div ref={end} />
         </div>
-      {(() => {
-        const lastIn = [...msgs].reverse().find((m) => m.direction === "customer")?.created_at ?? c.last_customer_at;
-        const left = lastIn ? 864e5 - (Date.now() - new Date(lastIn).getTime()) : -1;
-        return <div className="flex items-center justify-center gap-1.5 bg-wa-bar px-3 py-1 text-[10px] text-wa-muted"><Clock className="h-3 w-3" />{left > 0 ? `متاح للإرسال — متبقي ${Math.floor(left / 36e5)} ساعة و${Math.floor((left % 36e5) / 6e4)} دقيقة` : "انتهت مهلة 24 ساعة — لن تصل الرسالة حتى يراسلك العميل"}</div>;
-      })()}
       <form
-        className="flex items-end gap-2 bg-wa-bar p-2"
+        className="flex items-end gap-1.5 bg-wa-bar px-2 py-1 md:pb-3"
         onSubmit={async (e) => {
           e.preventDefault();
           const t = text.trim(); if (!t || sending) return;
@@ -519,12 +514,11 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
         }}
       >
         <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1} placeholder="مراسلة"
-          className="max-h-28 min-h-10 flex-1 resize-none rounded-3xl bg-wa-bot px-4 py-2 text-sm text-wa-text outline-none placeholder:text-wa-muted" />
-        <button disabled={sending || !text.trim()} aria-label="إرسال" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-wa-mic text-wa-text disabled:opacity-60">
-          <Send className="h-4 w-4 -scale-x-100" />
+          className="max-h-24 min-h-8 flex-1 resize-none rounded-3xl bg-wa-bot px-3 py-1.5 text-xs text-wa-text outline-none placeholder:text-wa-muted" />
+        <button disabled={sending || !text.trim()} aria-label="إرسال" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-wa-mic text-wa-text disabled:opacity-60">
+          <Send className="h-3.5 w-3.5 -scale-x-100" />
         </button>
       </form>
-      <div className="flex justify-center bg-wa-bar pb-1.5 pt-1"><div className="h-1 w-28 rounded-full bg-wa-muted" /></div>
       </div>
       </div>
       {err && <p className="px-3 pb-2 text-xs text-destructive">{err}</p>}
