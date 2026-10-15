@@ -257,17 +257,6 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
         : view === "catalog" ? <div className="rounded-xl border border-border bg-card"><Catalog pw={pw} /></div> : <>
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:gap-4">
         <div className="min-w-0 space-y-3">
-        <div className="grid grid-cols-3 gap-2 rounded-xl border border-border bg-card p-2 shadow-sm sm:grid-cols-5 md:gap-3 md:p-2.5">
-          {stats.map((s) => { const st = statStyle[s.key] ?? statStyle["all"]!; const Ic = st.icon; return (
-            <button key={s.label} onClick={() => setFilter(filter === s.key ? "all" : s.key)}
-              style={{ background: `linear-gradient(165deg, transparent 50%, color-mix(in oklch, var(--color-${st.c}) 16%, transparent))` }}
-              className={`flex flex-col items-center gap-0.5 rounded-lg border p-2 transition md:py-3 ${filter === s.key ? "border-primary ring-2 ring-primary/30" : "border-border"}`}>
-              <span style={{ background: `var(--color-${st.c})` }} className="flex h-8 w-8 items-center justify-center rounded-full text-primary-foreground md:h-11 md:w-11"><Ic className="h-4 w-4 md:h-5 md:w-5" /></span>
-              <span className="text-base font-bold md:text-2xl">{s.value}</span>
-              <span className="text-[10px] font-medium md:text-sm">{s.label}</span>
-            </button>
-          ); })}
-        </div>
 
 
         <div className="space-y-2.5 rounded-xl border border-border bg-card p-2.5 shadow-sm">
@@ -302,6 +291,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
               <button key={s} onClick={() => setFilter(s)}
                 className={`relative mt-2 flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs md:text-sm ${filter === s ? "bg-primary font-semibold text-primary-foreground" : s === "all" ? "bg-muted" : (stageClass[s] ?? "bg-muted")}`}>
                 {Ic && <Ic className="h-4 w-4" />}{s === "all" ? "الكل" : STAGES[s]}
+                <span className="rounded-full bg-background/70 px-1.5 text-[11px] font-bold text-foreground">{s === "all" ? customers.length : customers.filter((c) => c.stage === s).length}</span>
                 {n > 0 && <span className="absolute -top-2 -left-1 min-w-[18px] animate-pulse rounded-full bg-destructive px-1 text-[10px] font-bold leading-[18px] text-destructive-foreground">{n}</span>}
               </button>
             );})}
