@@ -27,7 +27,8 @@ function playChime() {
   } catch { /* ignore */ }
 }
 import { STAGES, type Stage } from "@/lib/crm-data";
-import { listCustomers, getMessages, sendMessage, saveNote, setBotPaused } from "@/lib/crm.functions";
+import { listCustomers, getMessages, sendMessage, sendAttachment, saveNote, setBotPaused } from "@/lib/crm.functions";
+import { Paperclip, X } from "lucide-react";
 import { Orders, useOrders } from "@/components/Orders";
 import { Tickets, useTickets } from "@/components/Tickets";
 import { Catalog } from "@/components/Catalog";
@@ -432,6 +433,9 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
   const [paused, setPaused] = useState(!!(c as { bot_paused?: boolean }).bot_paused);
   useEffect(() => { setPaused(!!(c as { bot_paused?: boolean }).bot_paused); }, [c.id]);
   const [text, setText] = useState("");
+  const sendFile = useServerFn(sendAttachment);
+  const [file, setFile] = useState<File | null>(null);
+  const fileIn = useRef<HTMLInputElement>(null);
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState("");
   const { data: msgs = [], refetch } = useQuery({
@@ -487,20 +491,45 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
         ))}
         <div ref={end} />
         </div>
+      {file && (
+        <div className="flex items-center gap-2 bg-wa-bar px-3 py-1 text-[11px] text-wa-text">
+          <Paperclip className="h-3 w-3 shrink-0" />
+          <span className="min-w-0 flex-1 truncate">{file.name}</span>
+          <span className="text-wa-muted">{(file.size / 1024 / 1024).toFixed(1)}MB</span>
+          <button type="button" onClick={() => setFile(null)} aria-label="إلغاء الملف"><X className="h-3.5 w-3.5" /></button>
+        </div>
+      )}
       <form
         className="flex items-end gap-1.5 bg-wa-bar px-2 py-1 md:pb-3"
         onSubmit={async (e) => {
           e.preventDefault();
-          const t = text.trim(); if (!t || sending) return;
+          const t = text.trim(); if ((!t && !file) || sending) return;
           setSending(true); setErr("");
-          try { await send({ data: { pw, id: c.id, text: t } }); setText(""); await refetch(); }
+          try {
+            if (file) {
+              const buf = new Uint8Array(await file.arrayBuffer());
+              let bin = ""; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+              await sendFile({ data: { pw, id: c.id, text: t, file_name: file.name, mime: file.type || "application/octet-stream", b64: btoa(bin) } });
+              setFile(null);
+            } else await send({ data: { pw, id: c.id, text: t } });
+            setText(""); await refetch();
+          }
           catch (x) { setErr(x instanceof Error ? x.message : "تعذّر الإرسال"); }
           finally { setSending(false); }
         }}
       >
-        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1} placeholder="مراسلة"
+        <input ref={fileIn} type="file" hidden onChange={(e) => {
+          const f = e.target.files?.[0]; e.target.value = "";
+          if (!f) return;
+          if (f.size > 16 * 1024 * 1024) { setErr("حجم الملف أكبر من 16MB"); return; }
+          setErr(""); setFile(f);
+        }} />
+        <button type="button" onClick={() => fileIn.current?.click()} aria-label="إرفاق ملف" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-wa-muted hover:bg-wa-bot">
+          <Paperclip className="h-4 w-4" />
+        </button>
+        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1} placeholder={file ? "تعليق (اختياري)" : "مراسلة"}
           className="max-h-24 min-h-8 flex-1 resize-none rounded-3xl bg-wa-bot px-3 py-1.5 text-xs text-wa-text outline-none placeholder:text-wa-muted" />
-        <button disabled={sending || !text.trim()} aria-label="إرسال" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-wa-mic text-wa-text disabled:opacity-60">
+        <button disabled={sending || (!text.trim() && !file)} aria-label="إرسال" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-wa-mic text-wa-text disabled:opacity-60">
           <Send className="h-3.5 w-3.5 -scale-x-100" />
         </button>
       </form>
