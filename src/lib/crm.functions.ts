@@ -113,6 +113,43 @@ export const sendMessage = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const sendAttachment = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({
+    pw: z.string(), id: z.string().uuid(), text: z.string().max(1024).default(""),
+    file_name: z.string().min(1).max(200), mime: z.string().max(120), b64: z.string().max(23_000_000),
+  }).parse(d))
+  .handler(async ({ data }) => {
+    check(data.pw);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: c, error } = await supabaseAdmin.from("customers").select("phone").eq("id", data.id).single();
+    if (error || !c) throw new Error("العميل غير موجود");
+    const bin = Uint8Array.from(atob(data.b64), (ch) => ch.charCodeAt(0));
+    const ext = (data.file_name.split(".").pop() ?? "bin").replace(/[^A-Za-z0-9]/g, "").slice(0, 8) || "bin";
+    const path = `${data.id}/${crypto.randomUUID()}.${ext}`;
+    const up = await supabaseAdmin.storage.from("crm-attachments").upload(path, bin, { contentType: data.mime || "application/octet-stream" });
+    if (up.error) throw new Error("تعذّر رفع الملف");
+    const sig = await supabaseAdmin.storage.from("crm-attachments").createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+    if (sig.error || !sig.data) throw new Error("تعذّر إنشاء رابط الملف");
+    const url = sig.data.signedUrl;
+    const m = data.mime;
+    const kind = m.startsWith("image/") ? "image" : m.startsWith("video/") ? "video" : m.startsWith("audio/") ? "audio" : m === "application/pdf" ? "pdf" : "document";
+    const res = await fetch("https://n8n.srv1994780.hstgr.cloud/webhook/actes-send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-bot-secret": process.env["BOT_INGEST_SECRET"] ?? "" },
+      body: JSON.stringify({ phone: c.phone, text: data.text, media_url: url, media_type: kind, file_name: data.file_name }),
+    });
+    if (!res.ok) {
+      console.error(`n8n media send failed [${res.status}]: ${await res.text()}`);
+      throw new Error(`تعذّر الإرسال (${res.status})`);
+    }
+    const now = new Date().toISOString();
+    const label = data.text || `📎 ${data.file_name}`;
+    await supabaseAdmin.from("messages").insert({ customer_id: data.id, direction: "agent", kind, text: label, media_url: url, mime: m, file_name: data.file_name });
+    await supabaseAdmin.from("customers").update({ last_message: label, last_at: now }).eq("id", data.id);
+    return { ok: true };
+  });
+
+
 const CONFIRM_TEXT = "أكتس لاستيراد أنظمة الطاقة\nشكراً لك، لقد تم تأكيد فاتورتك.\nستتواصل معك إدارة المبيعات في شركة أكتس خلال لحظات.";
 const CANCEL_TEXT = "أكتس لاستيراد أنظمة الطاقة\nلم يتم العثور على إشعار التحويل حتى الآن.\nيرجى التأكد من التحويل أو إعادة إرسال الإشعار.";
 
