@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      bot_button_locks: {
+        Row: {
+          choice: string | null
+          context_id: string
+          created_at: string
+          phone: string | null
+        }
+        Insert: {
+          choice?: string | null
+          context_id: string
+          created_at?: string
+          phone?: string | null
+        }
+        Update: {
+          choice?: string | null
+          context_id?: string
+          created_at?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
       catalog_items: {
         Row: {
           active: boolean
