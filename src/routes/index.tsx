@@ -259,7 +259,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
 
         <div className="space-y-2.5 rounded-xl border border-border bg-card p-2.5 shadow-sm lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:space-y-1.5 lg:p-2">
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {(["all", "sld", "quote", "cod", "buy", "human"] as (Stage | "all")[]).map((s) => {
+            {(["all", "quote", "cod", "buy", "human"] as (Stage | "all")[]).map((s) => {
               const n = customers.filter((c) => c.unread > 0 && (s === "all" || c.stage === s)).length;
               const Ic = s === "all" ? null : stageIcon[s];
               return (
