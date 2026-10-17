@@ -176,8 +176,8 @@
   --st-quote-fg: oklch(0.42 0.11 60);
   --st-buy: oklch(0.9 0.1 155);
   --st-buy-fg: oklch(0.38 0.11 155);
-  --st-human: oklch(0.93 0.06 25);
-  --st-human-fg: oklch(0.48 0.18 25);
+  --st-human: oklch(0.9 0.07 250);
+  --st-human-fg: oklch(0.42 0.17 255);
   --st-cod: oklch(0.92 0.06 230);
   --st-cod-fg: oklch(0.42 0.12 240);
   --st-sld: oklch(0.92 0.06 300);
@@ -215,8 +215,8 @@
   --st-quote-fg: oklch(0.88 0.1 80);
   --st-buy: oklch(0.35 0.08 155);
   --st-buy-fg: oklch(0.88 0.12 155);
-  --st-human: oklch(0.35 0.09 25);
-  --st-human-fg: oklch(0.88 0.1 25);
+  --st-human: oklch(0.35 0.1 255);
+  --st-human-fg: oklch(0.88 0.08 250);
   --st-cod: oklch(0.35 0.07 235);
   --st-cod-fg: oklch(0.88 0.08 230);
   --st-sld: oklch(0.35 0.08 300);

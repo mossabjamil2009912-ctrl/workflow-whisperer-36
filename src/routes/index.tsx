@@ -259,12 +259,12 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
 
         <div className="space-y-2.5 rounded-xl border border-border bg-card p-2.5 shadow-sm lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:space-y-1.5 lg:p-2">
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {(["all", ...Object.keys(STAGES)] as (Stage | "all")[]).map((s) => {
+            {(["all", "sld", "quote", "cod", "buy", "human"] as (Stage | "all")[]).map((s) => {
               const n = customers.filter((c) => c.unread > 0 && (s === "all" || c.stage === s)).length;
               const Ic = s === "all" ? null : stageIcon[s];
               return (
               <button key={s} onClick={() => setFilter(s)}
-                className={`relative mt-2 lg:mt-1.5 flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs md:text-sm ${filter === s ? "bg-primary font-semibold text-primary-foreground" : "bg-muted text-foreground"}`}>
+                className={`relative mt-2 lg:mt-1.5 flex flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs md:text-sm ${s === "human" ? `bg-st-human-fg text-background ${filter === s ? "font-semibold ring-2 ring-st-human-fg ring-offset-1" : ""}` : filter === s ? "bg-primary font-semibold text-primary-foreground" : "bg-muted text-foreground"}`}>
                 {Ic && <Ic className="h-4 w-4" />}{s === "all" ? "الكل" : STAGES[s]}
                 <span className="rounded-full bg-background/70 px-1.5 text-[11px] font-bold text-foreground">{s === "all" ? customers.length : customers.filter((c) => c.stage === s).length}</span>
                 {n > 0 && <span className="absolute -top-2 -left-1 min-w-[18px] animate-pulse rounded-full bg-destructive px-1 text-[10px] font-bold leading-[18px] text-destructive-foreground">{n}</span>}
