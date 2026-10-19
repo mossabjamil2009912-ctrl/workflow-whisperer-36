@@ -151,6 +151,26 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
     queryFn: () => list({ data: { pw } }),
     refetchInterval: 20000,
   });
+  // حفظ كل المحادثات على الجهاز للعمل دون إنترنت
+  const qcAll = useQueryClient();
+  const getAll = useServerFn(getMessages);
+  const [online, setOnline] = useState(true);
+  useEffect(() => {
+    const u = () => setOnline(navigator.onLine); u();
+    window.addEventListener("online", u); window.addEventListener("offline", u);
+    return () => { window.removeEventListener("online", u); window.removeEventListener("offline", u); };
+  }, []);
+  const synced = useRef(false);
+  useEffect(() => {
+    if (!online || synced.current || customers.length === 0) return;
+    synced.current = true;
+    (async () => {
+      for (const c of customers) {
+        if (!navigator.onLine) break;
+        await qcAll.prefetchQuery({ queryKey: ["messages", c.id], queryFn: () => getAll({ data: { pw, id: c.id } }), staleTime: 60_000 }).catch(() => {});
+      }
+    })();
+  }, [online, customers, qcAll, getAll, pw]);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<Stage | "all">("all");
   const [openId, setOpenId] = useState<string | null>(null);
