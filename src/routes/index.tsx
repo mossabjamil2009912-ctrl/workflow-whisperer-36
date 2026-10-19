@@ -32,6 +32,8 @@ import { Paperclip, X } from "lucide-react";
 import { Orders, useOrders } from "@/components/Orders";
 import { Tickets, useTickets } from "@/components/Tickets";
 import { Catalog } from "@/components/Catalog";
+import { QuoteBuilder } from "@/components/QuoteBuilder";
+import { FilePlus2 } from "lucide-react";
 import logo from "@/assets/actes-logo.png.asset.json";
 import logoClean from "@/assets/actes-logo-clean.png";
 import waBg from "@/assets/actes-wa-bg.png.asset.json";
@@ -152,7 +154,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<Stage | "all">("all");
   const [openId, setOpenId] = useState<string | null>(null);
-  const [view, setView] = useState<"chats" | "orders" | "tickets" | "catalog">("chats");
+  const [view, setView] = useState<"chats" | "orders" | "tickets" | "catalog" | "quote">("chats");
   const { data: tickets = [] } = useTickets(pw);
   const openTickets = tickets.filter((t) => t.status === "open").length;
   const { data: orders = [] } = useOrders(pw);
@@ -214,6 +216,7 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
     { k: "orders" as const, l: "الطلبات", i: FileText, n: pending },
     { k: "tickets" as const, l: "الدعم الفني", i: Headphones, n: openTickets },
     { k: "catalog" as const, l: "الأصناف", i: LayoutGrid, n: 0 },
+    { k: "quote" as const, l: "إنشاء عرض سعر", i: FilePlus2, n: 0 },
   ];
 
   return (
@@ -252,7 +255,8 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
 
         {view === "orders" ? <div className="rounded-xl border border-border bg-card lg:min-h-0 lg:flex-1 lg:overflow-y-auto"><Orders pw={pw} /></div>
         : view === "tickets" ? <div className="rounded-xl border border-border bg-card lg:min-h-0 lg:flex-1 lg:overflow-y-auto"><Tickets pw={pw} /></div>
-        : view === "catalog" ? <div className="rounded-xl border border-border bg-card lg:min-h-0 lg:flex-1 lg:overflow-y-auto"><Catalog pw={pw} /></div> : <>
+        : view === "catalog" ? <div className="rounded-xl border border-border bg-card lg:min-h-0 lg:flex-1 lg:overflow-y-auto"><Catalog pw={pw} /></div>
+        : view === "quote" ? <div className="rounded-xl border border-border bg-background lg:min-h-0 lg:flex-1 lg:overflow-hidden"><QuoteBuilder pw={pw} /></div> : <>
         <div className="lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-3">
         <div className="min-w-0 space-y-3 lg:flex lg:min-h-0 lg:flex-col">
 
