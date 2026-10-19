@@ -90,12 +90,22 @@ async function quotePdfBase64(no: string, cust: { name: string; phone: string; c
     await new Promise((r) => { if (doc.readyState === "complete") r(null); else frame.onload = () => r(null); setTimeout(r, 3000); });
     await doc.fonts.ready;
     await Promise.all([...doc.querySelectorAll("img")].map((im) => (im.complete ? null : new Promise((r) => { im.onload = im.onerror = r; }))));
-    const html2pdf = (await import("html2pdf.js")).default;
-    const uri: string = await html2pdf().set({
-      margin: [8, 10, 8, 10], image: { type: "jpeg", quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "mm", format: "a4" }, pagebreak: { mode: ["css", "avoid-all"] }
-    } as never).from(doc.querySelector(".qt") as HTMLElement).outputPdf("datauristring");
-    return uri.split(",")[1]!;
+    // Render directly inside the iframe document so app (oklch) styles are never parsed.
+    const html2canvas = (await import("html2canvas")).default;
+    const { jsPDF } = await import("jspdf");
+    const el = doc.querySelector(".qt") as HTMLElement;
+    const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff", window: frame.contentWindow! } as never);
+    const pdf = new jsPDF({ unit: "mm", format: "a4" });
+    const mx = 10, my = 8, pw = 210 - mx * 2, ph = 297 - my * 2;
+    const pxPerMm = canvas.width / pw, pagePx = Math.floor(ph * pxPerMm);
+    for (let y = 0, i = 0; y < canvas.height; y += pagePx, i++) {
+      const h = Math.min(pagePx, canvas.height - y);
+      const c = document.createElement("canvas"); c.width = canvas.width; c.height = h;
+      const ctx = c.getContext("2d")!; ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, h); ctx.drawImage(canvas, 0, -y);
+      if (i) pdf.addPage();
+      pdf.addImage(c.toDataURL("image/jpeg", 0.95), "JPEG", mx, my, pw, h / pxPerMm);
+    }
+    return pdf.output("datauristring").split(",")[1]!;
   } finally { frame.remove(); }
 }
 
