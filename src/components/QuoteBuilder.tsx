@@ -152,14 +152,23 @@ export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCus
 
   const [no, setNo] = useState<string | null>(null);
   const [generated, setGenerated] = useState(false);
-  const generate = () => {
+  const generate = async () => {
     if (!chosen.length) return setMsg("اختر صنفا واحدا على الأقل");
-    const w = window.open("", "_blank");
-    if (!w) return setMsg("اسمح بالنوافذ المنبثقة لعرض السعر");
-    w.document.write(quoteHtml(no ?? "ACTES-Q-مسودة", cust, chosen, notes));
-    w.document.close();
-    setGenerated(true);
+    setBusy(true); setMsg("جارٍ إنشاء ملف PDF...");
+    try {
+      const num = no ?? "ACTES-Q-" + Date.now().toString().slice(-6);
+      const b64 = await quotePdfBase64(num, cust, chosen, notes);
+      const bin = atob(b64); const arr = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([arr], { type: "application/pdf" }));
+      a.download = `عرض سعر ${num} - ${cust.name || "عميل"}.pdf`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      setGenerated(true); setMsg("تم إنشاء وتحميل ملف PDF");
+    } catch (e) { setMsg("تعذر إنشاء PDF: " + (e as Error).message); } finally { setBusy(false); }
   };
+  void quoteHtml;
   const doShare = async (toId: string) => {
     setBusy(true); setMsg(null);
     try {
