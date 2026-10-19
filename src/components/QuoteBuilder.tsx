@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Search, FilePlus2, Save, Minus, Plus, Trash2, Check, Zap, Battery, Sun, Box, ShieldCheck, Server, Home, Cpu, Cable, Wrench, Printer, History } from "lucide-react";
-import { listCatalog, listCustomers, saveQuote, listQuotes } from "@/lib/crm.functions";
+import { Search, FilePlus2, Save, Minus, Plus, Trash2, Check, Zap, Battery, Sun, Box, ShieldCheck, Server, Home, Cpu, Cable, Wrench, Printer, History, Share2, X } from "lucide-react";
+import { listCatalog, listCustomers, saveQuote, listQuotes, sendAttachment } from "@/lib/crm.functions";
 import logoClean from "@/assets/actes-logo-clean.png";
 
 type Row = Awaited<ReturnType<typeof listCatalog>>[number];
@@ -99,7 +99,7 @@ async function quotePdfBase64(no: string, cust: { name: string; phone: string; c
 }
 
 export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCustomerId?: string | null }) {
-  const listC = useServerFn(listCatalog), listCu = useServerFn(listCustomers), save = useServerFn(saveQuote), listQ = useServerFn(listQuotes);
+  const listC = useServerFn(listCatalog), listCu = useServerFn(listCustomers), save = useServerFn(saveQuote), sendA = useServerFn(sendAttachment), listQ = useServerFn(listQuotes);
   const { data: rows = [] } = useQuery({ queryKey: ["catalog"], queryFn: () => listC({ data: { pw } }) });
   const { data: customers = [] } = useQuery({ queryKey: ["quote-customers"], queryFn: () => listCu({ data: { pw } }) });
   const { data: quotes = [], refetch: refetchQ } = useQuery({ queryKey: ["quotes"], queryFn: () => listQ({ data: { pw } }) });
@@ -114,6 +114,8 @@ export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCus
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [showHist, setShowHist] = useState(false);
+  const [share, setShare] = useState(false);
+  const [shareQ, setShareQ] = useState("");
 
   const items = useMemo(() => rows.filter((r) => r.kind === "item" && r.active), [rows]);
   const byCat = useMemo(() => {
@@ -155,6 +157,16 @@ export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCus
     if (!w) return setMsg("اسمح بالنوافذ المنبثقة لعرض السعر");
     w.document.write(quoteHtml(no ?? "ACTES-Q-مسودة", cust, chosen, notes));
     w.document.close();
+  };
+  const doShare = async (toId: string) => {
+    setBusy(true); setMsg(null);
+    try {
+      const num = no ?? "ACTES-Q-" + Date.now().toString().slice(-6);
+      const b64 = await quotePdfBase64(num, cust, chosen, notes);
+      const to = customers.find((c) => c.id === toId);
+      await sendA({ data: { pw, id: toId, text: `عرض سعر ${num}`, file_name: `عرض سعر ${num} - ${cust.name || "..........."}.pdf`, mime: "application/pdf", b64 } });
+      setShare(false); setMsg(`تم إرسال عرض السعر إلى ${to?.name || to?.phone}`);
+    } catch (e) { setMsg((e as Error).message); } finally { setBusy(false); }
   };
   const doSave = async () => {
     if (!chosen.length) return setMsg("اختر صنفا واحدا على الأقل");
@@ -262,6 +274,22 @@ export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCus
           <span className="text-sm">الإجمالي</span><span className="text-xl font-extrabold text-primary">{usd(total)}</span>
         </div>
         {msg && <p className="text-center text-xs font-semibold text-primary">{msg}</p>}
+        <button onClick={() => (chosen.length ? setShare(true) : setMsg("اختر صنفا واحدا على الأقل"))} disabled={busy} className="flex items-center justify-center gap-1.5 rounded-lg bg-ink py-2.5 text-sm font-bold text-ink-foreground transition hover:opacity-90 disabled:opacity-50"><Share2 className="h-4 w-4" />{busy && share ? "جارٍ الإرسال..." : "مشاركة مع عميل"}</button>
+        {share && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4" onClick={() => !busy && setShare(false)}>
+            <div className="flex max-h-[80vh] w-full max-w-md flex-col gap-2 rounded-xl bg-card p-3 shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between"><b>إرسال عرض السعر PDF إلى</b><button onClick={() => setShare(false)}><X className="h-4 w-4" /></button></div>
+              <input value={shareQ} onChange={(e) => setShareQ(e.target.value)} placeholder="بحث بالاسم أو الرقم" className="rounded-lg border bg-background px-3 py-2 text-sm" />
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                {customers.filter((c) => !shareQ || ((c.name ?? "") + c.phone).includes(shareQ)).map((c) => (
+                  <button key={c.id} disabled={busy} onClick={() => doShare(c.id)} className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-right text-sm hover:bg-muted disabled:opacity-50">
+                    <span className="font-semibold">{c.name || "بدون اسم"}</span><span dir="ltr" className="text-xs text-muted-foreground">{c.phone}</span>
+                  </button>))}
+              </div>
+              {busy && <p className="text-center text-xs text-primary">جارٍ إنشاء الملف وإرساله...</p>}
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-2">
           <button onClick={generate} className="flex items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-sm font-bold text-primary-foreground shadow transition hover:opacity-90"><Printer className="h-4 w-4" />إنشاء عرض السعر</button>
           <button onClick={doSave} disabled={busy} className="flex items-center justify-center gap-1.5 rounded-lg border-2 border-primary py-2.5 text-sm font-bold text-primary transition hover:bg-primary/10 disabled:opacity-50"><Save className="h-4 w-4" />{busy ? "جارٍ الحفظ..." : "حفظ عرض السعر"}</button>
