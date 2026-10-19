@@ -228,6 +228,53 @@ export type Database = {
           },
         ]
       }
+      quotes: {
+        Row: {
+          city: string | null
+          created_at: string
+          customer_id: string | null
+          customer_name: string | null
+          id: string
+          items: Json
+          notes: string | null
+          phone: string | null
+          quote_no: string
+          total: number
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          customer_id?: string | null
+          customer_name?: string | null
+          id?: string
+          items?: Json
+          notes?: string | null
+          phone?: string | null
+          quote_no?: string
+          total?: number
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          customer_id?: string | null
+          customer_name?: string | null
+          id?: string
+          items?: Json
+          notes?: string | null
+          phone?: string | null
+          quote_no?: string
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_tickets: {
         Row: {
           assigned_to: string | null
