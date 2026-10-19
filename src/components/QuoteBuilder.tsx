@@ -198,14 +198,14 @@ export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCus
               </button>))}
           </div>
         )}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
           {TABLES.map((t) => { const n = countIn(t.k), all = t.k === "custom" ? 0 : byCat[t.k]?.length ?? 0; return (
             <button key={t.k} onClick={() => { setActive(t.k); setQ(""); }}
-              className={`group relative flex flex-col items-start gap-1 rounded-xl border p-2.5 text-right transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${active === t.k ? "border-primary bg-primary text-primary-foreground shadow-lg" : "bg-card"}`}>
-              <t.i className={`h-5 w-5 ${active === t.k ? "" : "text-primary"}`} />
-              <span className="text-xs font-bold leading-tight">{t.t}</span>
-              <span className="text-[10px] opacity-70">{t.k === "custom" ? "إدخال حر" : `${all} صنف`}</span>
-              {n > 0 && <span className="absolute -top-1.5 -left-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground animate-in zoom-in">{n}</span>}
+              className={`group relative flex items-center gap-1.5 rounded-lg border px-2 py-1 text-right transition-all duration-200 hover:shadow-md ${active === t.k ? "border-primary bg-primary text-primary-foreground shadow" : "bg-card"}`}>
+              <t.i className={`h-3.5 w-3.5 shrink-0 ${active === t.k ? "" : "text-primary"}`} />
+              <span className="truncate text-[11px] font-bold leading-tight">{t.t}</span>
+              <span className="mr-auto shrink-0 text-[9px] opacity-70">{t.k === "custom" ? "حر" : all}</span>
+              {n > 0 && <span className="absolute -top-1.5 -left-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground animate-in zoom-in">{n}</span>}
             </button>); })}
         </div>
 
