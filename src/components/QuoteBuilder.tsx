@@ -248,30 +248,29 @@ export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCus
         </div>
       </section>
 
-      <aside className="flex min-h-0 flex-col gap-2 rounded-xl border bg-card p-3 shadow-sm">
-        <h3 className="font-bold">العميل</h3>
-        <select value={custId ?? ""} onChange={(e) => pickCustomer(e.target.value)} className="rounded-lg border bg-background px-2 py-1.5 text-sm">
-          <option value="">— عميل جديد / بدون —</option>
+      <aside className="flex min-h-0 flex-col gap-1.5 rounded-xl border bg-card p-2 shadow-sm">
+        <select value={custId ?? ""} onChange={(e) => pickCustomer(e.target.value)} className="rounded-md border bg-background px-2 py-1 text-xs">
+          <option value="">— العميل: جديد / بدون —</option>
           {customers.map((c) => <option key={c.id} value={c.id}>{c.name || c.phone} {c.name ? `(${c.phone})` : ""}</option>)}
         </select>
-        <div className="grid grid-cols-2 gap-2">
-          <input value={cust.name} onChange={(e) => setCust({ ...cust, name: e.target.value })} placeholder="الاسم" className="rounded-lg border bg-background px-2 py-1.5 text-sm" />
-          <input value={cust.city} onChange={(e) => setCust({ ...cust, city: e.target.value })} placeholder="المدينة" className="rounded-lg border bg-background px-2 py-1.5 text-sm" />
-          <input dir="ltr" value={cust.phone} onChange={(e) => setCust({ ...cust, phone: e.target.value })} placeholder="الهاتف" className="col-span-2 rounded-lg border bg-background px-2 py-1.5 text-sm" />
+        <div className="grid grid-cols-3 gap-1">
+          <input value={cust.name} onChange={(e) => setCust({ ...cust, name: e.target.value })} placeholder="الاسم" className="min-w-0 rounded-md border bg-background px-1.5 py-1 text-xs" />
+          <input value={cust.city} onChange={(e) => setCust({ ...cust, city: e.target.value })} placeholder="المدينة" className="min-w-0 rounded-md border bg-background px-1.5 py-1 text-xs" />
+          <input dir="ltr" value={cust.phone} onChange={(e) => setCust({ ...cust, phone: e.target.value })} placeholder="الهاتف" className="min-w-0 rounded-md border bg-background px-1.5 py-1 text-xs" />
         </div>
-        <h3 className="mt-1 flex items-center justify-between font-bold">الأصناف المختارة <span className="rounded-full bg-primary px-2 text-xs text-primary-foreground">{chosen.length}</span></h3>
-        <ul className="min-h-24 flex-1 space-y-1.5 overflow-y-auto">
+        <h3 className="flex items-center justify-between text-sm font-bold">الأصناف المختارة <span className="rounded-full bg-primary px-2 text-xs text-primary-foreground">{chosen.length}</span></h3>
+        <ul className="min-h-40 flex-1 space-y-1 overflow-y-auto">
           {chosen.length === 0 && <li className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">اضغط على أي صنف من الجداول لإضافته</li>}
           {chosen.map((l) => (
-            <li key={l.key} className="flex items-center gap-2 rounded-lg bg-muted/50 p-2 text-xs animate-in fade-in slide-in-from-left-2">
-              <div className="min-w-0 flex-1"><div className="truncate font-semibold">{l.name}</div><div className="text-muted-foreground">{l.qty} × {usd(l.price)}</div></div>
+            <li key={l.key} className="flex items-center gap-2 rounded-md bg-muted/50 px-2 py-1 text-xs animate-in fade-in slide-in-from-left-2">
+              <div className="min-w-0 flex-1"><div className="truncate font-semibold">{l.name}</div><div className="text-[10px] text-muted-foreground">{l.qty} × {usd(l.price)}</div></div>
               <b className="text-primary">{usd(l.qty * l.price)}</b>
-              <button onClick={() => remove(l.key)} className="rounded p-1 text-destructive hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5" /></button>
+              <button onClick={() => remove(l.key)} className="rounded p-0.5 text-destructive hover:bg-destructive/10"><Trash2 className="h-3.5 w-3.5" /></button>
             </li>))}
         </ul>
-        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="ملاحظات على العرض (اختياري)" rows={2} className="rounded-lg border bg-background px-2 py-1.5 text-sm" />
-        <div className="flex items-center justify-between rounded-xl bg-ink px-4 py-3 text-ink-foreground">
-          <span className="text-sm">الإجمالي</span><span className="text-xl font-extrabold text-primary">{usd(total)}</span>
+        <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="ملاحظات على العرض (اختياري)" className="rounded-md border bg-background px-2 py-1 text-xs" />
+        <div className="flex items-center justify-between rounded-lg bg-ink px-3 py-1.5 text-ink-foreground">
+          <span className="text-xs">الإجمالي</span><span className="text-base font-extrabold text-primary">{usd(total)}</span>
         </div>
         {msg && <p className="text-center text-xs font-semibold text-primary">{msg}</p>}
         <button onClick={() => (chosen.length ? setShare(true) : setMsg("اختر صنفا واحدا على الأقل"))} disabled={busy} className="flex items-center justify-center gap-1.5 rounded-lg bg-ink py-2.5 text-sm font-bold text-ink-foreground transition hover:opacity-90 disabled:opacity-50"><Share2 className="h-4 w-4" />{busy && share ? "جارٍ الإرسال..." : "مشاركة مع عميل"}</button>
