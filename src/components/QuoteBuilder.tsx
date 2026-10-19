@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Search, FilePlus2, Save, Minus, Plus, Trash2, Check, Zap, Battery, Sun, Box, ShieldCheck, Server, Home, Cpu, Cable, Wrench, Printer, History } from "lucide-react";
-import { listCatalog, listCustomers, saveQuote, listQuotes } from "@/lib/crm.functions";
+import { Search, FilePlus2, Save, Minus, Plus, Trash2, Check, Zap, Battery, Sun, Box, ShieldCheck, Server, Home, Cpu, Cable, Wrench, Printer, History, Share2, X } from "lucide-react";
+import { listCatalog, listCustomers, saveQuote, listQuotes, sendAttachment } from "@/lib/crm.functions";
 import logoClean from "@/assets/actes-logo-clean.png";
 
 type Row = Awaited<ReturnType<typeof listCatalog>>[number];
@@ -25,30 +25,81 @@ const usd = (n: number) => "$" + n.toLocaleString("en-US", { maximumFractionDigi
 const specsOf = (r: Row) => (Array.isArray(r.specs) ? (r.specs as unknown[]).map(String) : []);
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
-function quoteHtml(no: string, cust: { name: string; phone: string; city: string }, lines: Line[], notes: string) {
+const money = (n: number) => "$ " + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const specLine = (s: string) => {
+  const i = s.indexOf(":");
+  return i > 0 && i < 60 ? `<b>${esc(s.slice(0, i + 1))}</b>${esc(s.slice(i + 1))}` : esc(s);
+};
+
+// نسخة طبق الأصل من قالب عرض سعر البوت (عقدة Build Quote HTML)
+function quoteBody(no: string, cust: { name: string; phone: string; city: string }, lines: Line[], notes: string) {
   const total = lines.reduce((s, l) => s + l.price * l.qty, 0);
-  const logo = new URL(logoClean, location.origin).href;
-  const rows = lines.map((l, i) => `<tr><td>${i + 1}</td><td><b>${esc(l.name)}</b>${l.specs.length ? `<ul>${l.specs.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>` : ""}</td><td>${l.qty} ${esc(l.unit ?? "")}</td><td>${usd(l.price)}</td><td><b>${usd(l.price * l.qty)}</b></td></tr>`).join("");
-  return `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>${no}</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet"><style>
-  @page{size:A4;margin:12mm}body{font-family:Cairo,sans-serif;color:#1d2433;margin:0}
-  .hd{display:flex;justify-content:space-between;align-items:center;background:#141a26;color:#fff;padding:18px 24px;border-bottom:6px solid #f5a300}
-  .hd img{height:54px}.hd h1{margin:0;font-size:26px;color:#f5a300}.hd small{opacity:.8}
-  .info{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;padding:16px 24px;background:#f6f7f9;font-size:14px}
-  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}th{background:#f5a300;color:#141a26;padding:9px;text-align:right}
-  td{border-bottom:1px solid #e3e6ea;padding:9px;vertical-align:top}ul{margin:4px 0 0;padding-right:16px;color:#5b6474;font-size:11.5px}
-  .tot{display:flex;justify-content:flex-end;margin-top:14px}.tot div{background:#141a26;color:#fff;padding:12px 22px;border-radius:8px;font-size:18px}.tot b{color:#f5a300}
-  .terms{margin-top:22px;font-size:12px;color:#5b6474;border-top:2px solid #f5a300;padding-top:10px}
-  </style></head><body><div class="hd"><div><h1>عرض سعر</h1><small>${no} — ${new Date().toLocaleDateString("ar-EG")}</small></div><img src="${logo}"></div>
-  <div class="info"><div>العميل: <b>${esc(cust.name || "-")}</b></div><div>الهاتف: <b dir="ltr">${esc(cust.phone || "-")}</b></div><div>المدينة: <b>${esc(cust.city || "-")}</b></div><div>العملة: <b>دولار أمريكي</b></div></div>
-  <div style="padding:0 24px"><table><thead><tr><th>#</th><th>الصنف والمواصفات</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead><tbody>${rows}</tbody></table>
-  <div class="tot"><div>الإجمالي الكلي: <b>${usd(total)}</b></div></div>
-  ${notes ? `<p style="margin-top:14px"><b>ملاحظات:</b> ${esc(notes)}</p>` : ""}
-  <div class="terms"><b>الشروط:</b> العرض ساري لمدة 7 أيام · الأسعار بالدولار الأمريكي · الضمان حسب ضمان الشركة المصنعة لكل صنف.<br>ACTES للطاقة الشمسية</div></div>
-  <script>onload=()=>setTimeout(()=>print(),400)</script></body></html>`;
+  const o = location.origin;
+  const d = new Date();
+  const p2 = (n: number) => String(n).padStart(2, "0");
+  const date = `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()}`;
+  const h = d.getHours() % 12 || 12;
+  const stamp = `${d.getHours() >= 12 ? "PM" : "AM"} ${p2(h)}:${p2(d.getMinutes())}:${p2(d.getSeconds())} ${date}`;
+  const rows = lines.map((l, i) => `<tr><td class="c">${i + 1}</td><td class="nm"><div class="t">${esc(l.name)}</div>${l.specs.length ? `<div class="sp">${l.specs.map((s) => `<div>${specLine(s)}</div>`).join("")}</div>` : ""}</td><td class="c">${esc(l.unit ?? "حبة")}</td><td class="c">${l.qty}</td><td class="m">${money(l.price)}</td><td class="m">${money(l.price * l.qty)}</td></tr>`).join("");
+  const noteList = [
+    "الأسعار غير شاملة أعمال التركيب ما لم يُذكر خلاف ذلك.",
+    ...(lines.some((l) => /كابل/.test(l.name)) ? ["كمية الكابل (1 متر) لتحديد سعر المتر، ويُحدد الطول الفعلي حسب مسافة الموقع."] : []),
+    ...(notes ? [notes] : []),
+  ];
+  const css = `.qt{font-family:Cairo,sans-serif;color:#000;direction:rtl;width:190mm;margin:0 auto;font-size:11px;background:#fff}
+  .qt .hdr{width:100%;display:block}
+  .qt .info{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;margin:6px 4px 4px;font-size:12px;line-height:1.35}
+  .qt .info div{display:flex;gap:6px}.qt .info span{min-width:92px}
+  .qt table{width:100%;border-collapse:collapse}
+  .qt th{background:#ed1c24;color:#000;font-weight:800;font-size:14px;border:1.5px solid #000;padding:1px 4px}
+  .qt td{border:1.5px solid #000;vertical-align:top;padding:3px 5px}
+  .qt td.c{text-align:center;font-weight:700}.qt td.m{text-align:left;direction:ltr;font-weight:700;white-space:nowrap}
+  .qt .t{font-weight:800;font-size:13px;margin-bottom:8px}.qt .sp{font-size:10.5px;line-height:1.35}
+  .qt tr{page-break-inside:avoid}
+  .qt .tot td{background:#d9d9d9;font-weight:800;font-size:13px}.qt .tot td.m{color:#ed1c24;background:#fff}
+  .qt .notes{font-size:9.5px;margin-top:6px;line-height:1.6}
+  .qt .ft{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;border-top:1px solid #000;padding-top:4px;font-size:8.5px;direction:ltr;font-weight:700}
+  .qt .ft img{height:46px}`;
+  const html = `<div class="qt"><img class="hdr" src="${o}/quote-header.jpg">
+  <div class="info"><div><span>الأخـــوة /</span><b>${esc(cust.name || "...........")}</b></div><div><span>عملة العرض :</span>الدولار الأمريكي</div>
+  <div><span>الموقع :</span>${esc(cust.city || "—")}</div><div><span>تاريخ عرض السعر :</span>${date}</div>
+  <div><span>رقم الموبايل :</span><span dir="ltr" style="text-align:right">${esc(cust.phone ? "+" + cust.phone.replace(/^\+/, "") : "—")}</span></div><div><span>رقم عرض السعر :</span>${esc(no)}</div></div>
+  <table><thead><tr><th style="width:22px">م</th><th>اســم الـصنـف والــمـــواصـفـــات</th><th style="width:58px">الوحدة</th><th style="width:58px">الكمية</th><th style="width:88px">السعر</th><th style="width:96px">الإجمالي</th></tr></thead>
+  <tbody>${rows}<tr class="tot"><td colspan="5" style="text-align:center">الإجمالي</td><td class="m">${money(total)}</td></tr></tbody></table>
+  <div class="notes">${noteList.map((n, i) => `${i === 0 ? "مـلاحـظــات: " : ""}${i + 1}. ${esc(n)}`).join("<br>")}</div>
+  <div class="ft"><img src="${o}/quote-qr.jpg"><span>www.actesgroup.com &nbsp;&nbsp; email: info@actesgroup.com</span><span>طبع بواسطة : ACTES CRM</span><span>تاريخ التقرير : ${stamp}</span></div></div>`;
+  return { css, html };
+}
+
+function quoteHtml(no: string, cust: { name: string; phone: string; city: string }, lines: Line[], notes: string) {
+  const { css, html } = quoteBody(no, cust, lines, notes);
+  return `<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>${esc(no)}</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet"><style>@page{size:A4;margin:8mm 10mm}body{margin:0}${css}</style></head><body>${html}<script>document.fonts.ready.then(()=>setTimeout(()=>print(),300))</script></body></html>`;
+}
+
+async function quotePdfBase64(no: string, cust: { name: string; phone: string; city: string }, lines: Line[], notes: string) {
+  const { css, html } = quoteBody(no, cust, lines, notes);
+  if (!document.getElementById("cairo-font")) {
+    const l = document.createElement("link"); l.id = "cairo-font"; l.rel = "stylesheet";
+    l.href = "https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap"; document.head.appendChild(l);
+  }
+  const box = document.createElement("div");
+  box.style.cssText = "position:fixed;left:-10000px;top:0";
+  box.innerHTML = `<style>${css}</style>${html}`;
+  document.body.appendChild(box);
+  try {
+    await document.fonts.ready;
+    await Promise.all([...box.querySelectorAll("img")].map((im) => (im.complete ? null : new Promise((r) => { im.onload = im.onerror = r; }))));
+    const html2pdf = (await import("html2pdf.js")).default;
+    const uri: string = await html2pdf().set({
+      margin: [8, 10, 8, 10], image: { type: "jpeg", quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "mm", format: "a4" }, pagebreak: { mode: ["css", "avoid-all"] }
+    } as never).from(box.querySelector(".qt") as HTMLElement).outputPdf("datauristring");
+    return uri.split(",")[1]!;
+  } finally { box.remove(); }
 }
 
 export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCustomerId?: string | null }) {
-  const listC = useServerFn(listCatalog), listCu = useServerFn(listCustomers), save = useServerFn(saveQuote), listQ = useServerFn(listQuotes);
+  const listC = useServerFn(listCatalog), listCu = useServerFn(listCustomers), save = useServerFn(saveQuote), sendA = useServerFn(sendAttachment), listQ = useServerFn(listQuotes);
   const { data: rows = [] } = useQuery({ queryKey: ["catalog"], queryFn: () => listC({ data: { pw } }) });
   const { data: customers = [] } = useQuery({ queryKey: ["quote-customers"], queryFn: () => listCu({ data: { pw } }) });
   const { data: quotes = [], refetch: refetchQ } = useQuery({ queryKey: ["quotes"], queryFn: () => listQ({ data: { pw } }) });
@@ -63,6 +114,8 @@ export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCus
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [showHist, setShowHist] = useState(false);
+  const [share, setShare] = useState(false);
+  const [shareQ, setShareQ] = useState("");
 
   const items = useMemo(() => rows.filter((r) => r.kind === "item" && r.active), [rows]);
   const byCat = useMemo(() => {
@@ -104,6 +157,16 @@ export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCus
     if (!w) return setMsg("اسمح بالنوافذ المنبثقة لعرض السعر");
     w.document.write(quoteHtml(no ?? "ACTES-Q-مسودة", cust, chosen, notes));
     w.document.close();
+  };
+  const doShare = async (toId: string) => {
+    setBusy(true); setMsg(null);
+    try {
+      const num = no ?? "ACTES-Q-" + Date.now().toString().slice(-6);
+      const b64 = await quotePdfBase64(num, cust, chosen, notes);
+      const to = customers.find((c) => c.id === toId);
+      await sendA({ data: { pw, id: toId, text: `عرض سعر ${num}`, file_name: `عرض سعر ${num} - ${cust.name || "..........."}.pdf`, mime: "application/pdf", b64 } });
+      setShare(false); setMsg(`تم إرسال عرض السعر إلى ${to?.name || to?.phone}`);
+    } catch (e) { setMsg((e as Error).message); } finally { setBusy(false); }
   };
   const doSave = async () => {
     if (!chosen.length) return setMsg("اختر صنفا واحدا على الأقل");
@@ -211,6 +274,22 @@ export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCus
           <span className="text-sm">الإجمالي</span><span className="text-xl font-extrabold text-primary">{usd(total)}</span>
         </div>
         {msg && <p className="text-center text-xs font-semibold text-primary">{msg}</p>}
+        <button onClick={() => (chosen.length ? setShare(true) : setMsg("اختر صنفا واحدا على الأقل"))} disabled={busy} className="flex items-center justify-center gap-1.5 rounded-lg bg-ink py-2.5 text-sm font-bold text-ink-foreground transition hover:opacity-90 disabled:opacity-50"><Share2 className="h-4 w-4" />{busy && share ? "جارٍ الإرسال..." : "مشاركة مع عميل"}</button>
+        {share && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4" onClick={() => !busy && setShare(false)}>
+            <div className="flex max-h-[80vh] w-full max-w-md flex-col gap-2 rounded-xl bg-card p-3 shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between"><b>إرسال عرض السعر PDF إلى</b><button onClick={() => setShare(false)}><X className="h-4 w-4" /></button></div>
+              <input value={shareQ} onChange={(e) => setShareQ(e.target.value)} placeholder="بحث بالاسم أو الرقم" className="rounded-lg border bg-background px-3 py-2 text-sm" />
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                {customers.filter((c) => !shareQ || ((c.name ?? "") + c.phone).includes(shareQ)).map((c) => (
+                  <button key={c.id} disabled={busy} onClick={() => doShare(c.id)} className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-right text-sm hover:bg-muted disabled:opacity-50">
+                    <span className="font-semibold">{c.name || "بدون اسم"}</span><span dir="ltr" className="text-xs text-muted-foreground">{c.phone}</span>
+                  </button>))}
+              </div>
+              {busy && <p className="text-center text-xs text-primary">جارٍ إنشاء الملف وإرساله...</p>}
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-2">
           <button onClick={generate} className="flex items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-sm font-bold text-primary-foreground shadow transition hover:opacity-90"><Printer className="h-4 w-4" />إنشاء عرض السعر</button>
           <button onClick={doSave} disabled={busy} className="flex items-center justify-center gap-1.5 rounded-lg border-2 border-primary py-2.5 text-sm font-bold text-primary transition hover:bg-primary/10 disabled:opacity-50"><Save className="h-4 w-4" />{busy ? "جارٍ الحفظ..." : "حفظ عرض السعر"}</button>
