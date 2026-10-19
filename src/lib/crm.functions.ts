@@ -310,3 +310,33 @@ export const saveCatalogItem = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const saveQuote = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({
+    pw: z.string(),
+    customer_id: z.string().uuid().nullable(),
+    customer_name: z.string().max(200).nullable(),
+    phone: z.string().max(40).nullable(),
+    city: z.string().max(100).nullable(),
+    notes: z.string().max(2000).nullable(),
+    items: z.array(z.object({ key: z.string().max(100), name: z.string().max(500), unit: z.string().max(50).nullable(), price: z.number().nonnegative(), qty: z.number().positive().max(100000), specs: z.array(z.string().max(1000)).max(200) })).min(1).max(200),
+  }).parse(d))
+  .handler(async ({ data }) => {
+    check(data.pw);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { pw: _pw, ...rest } = data;
+    const total = rest.items.reduce((s, i) => s + i.price * i.qty, 0);
+    const { data: row, error } = await supabaseAdmin.from("quotes").insert({ ...rest, total }).select("id, quote_no").single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const listQuotes = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ pw: z.string() }).parse(d))
+  .handler(async ({ data }) => {
+    check(data.pw);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin.from("quotes").select("*").order("created_at", { ascending: false }).limit(100);
+    if (error) throw new Error(error.message);
+    return rows;
+  });
