@@ -92,8 +92,8 @@ async function quotePdfBase64(no: string, cust: { name: string; phone: string; c
     const html2pdf = (await import("html2pdf.js")).default;
     const uri: string = await html2pdf().set({
       margin: [8, 10, 8, 10], image: { type: "jpeg", quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "mm", format: "a4" }, pagebreak: { mode: ["css", "avoid-all"] } } as never
-    }).from(box.querySelector(".qt") as HTMLElement).outputPdf("datauristring");
+      html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "mm", format: "a4" }, pagebreak: { mode: ["css", "avoid-all"] }
+    } as never).from(box.querySelector(".qt") as HTMLElement).outputPdf("datauristring");
     return uri.split(",")[1]!;
   } finally { box.remove(); }
 }
