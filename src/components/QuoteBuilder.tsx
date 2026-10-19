@@ -151,12 +151,14 @@ export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCus
   if (custId && !cust.phone) { const c = customers.find((x) => x.id === custId); if (c) setCust({ name: c.name ?? "", phone: c.phone, city: c.city ?? "" }); }
 
   const [no, setNo] = useState<string | null>(null);
+  const [generated, setGenerated] = useState(false);
   const generate = () => {
     if (!chosen.length) return setMsg("اختر صنفا واحدا على الأقل");
     const w = window.open("", "_blank");
     if (!w) return setMsg("اسمح بالنوافذ المنبثقة لعرض السعر");
     w.document.write(quoteHtml(no ?? "ACTES-Q-مسودة", cust, chosen, notes));
     w.document.close();
+    setGenerated(true);
   };
   const doShare = async (toId: string) => {
     setBusy(true); setMsg(null);
@@ -273,7 +275,10 @@ export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCus
           <span className="text-xs">الإجمالي</span><span className="text-base font-extrabold text-primary">{usd(total)}</span>
         </div>
         {msg && <p className="text-center text-xs font-semibold text-primary">{msg}</p>}
-        <button onClick={() => (chosen.length ? setShare(true) : setMsg("اختر صنفا واحدا على الأقل"))} disabled={busy} className="flex items-center justify-center gap-1.5 rounded-lg bg-ink py-2.5 text-sm font-bold text-ink-foreground transition hover:opacity-90 disabled:opacity-50"><Share2 className="h-4 w-4" />{busy && share ? "جارٍ الإرسال..." : "مشاركة مع عميل"}</button>
+        <div className="grid grid-cols-2 gap-1.5">
+          <button onClick={generate} className="flex items-center justify-center gap-1 rounded-md bg-primary py-1.5 text-xs font-bold text-primary-foreground shadow transition hover:opacity-90"><Printer className="h-3.5 w-3.5" />إنشاء عرض السعر</button>
+          <button onClick={() => (chosen.length ? setShare(true) : setMsg("اختر صنفا واحدا على الأقل"))} disabled={busy} className="flex items-center justify-center gap-1 rounded-md bg-ink py-1.5 text-xs font-bold text-ink-foreground transition hover:opacity-90 disabled:opacity-50"><Share2 className="h-3.5 w-3.5" />{busy && share ? "جارٍ الإرسال..." : "مشاركة مع عميل"}</button>
+        </div>
         {share && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4" onClick={() => !busy && setShare(false)}>
             <div className="flex max-h-[80vh] w-full max-w-md flex-col gap-2 rounded-xl bg-card p-3 shadow-xl" onClick={(e) => e.stopPropagation()}>
@@ -289,10 +294,9 @@ export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCus
             </div>
           </div>
         )}
-        <div className="grid grid-cols-2 gap-2">
-          <button onClick={generate} className="flex items-center justify-center gap-1.5 rounded-lg bg-primary py-2.5 text-sm font-bold text-primary-foreground shadow transition hover:opacity-90"><Printer className="h-4 w-4" />إنشاء عرض السعر</button>
-          <button onClick={doSave} disabled={busy} className="flex items-center justify-center gap-1.5 rounded-lg border-2 border-primary py-2.5 text-sm font-bold text-primary transition hover:bg-primary/10 disabled:opacity-50"><Save className="h-4 w-4" />{busy ? "جارٍ الحفظ..." : "حفظ عرض السعر"}</button>
-        </div>
+        {generated && (
+          <button onClick={doSave} disabled={busy} className="flex items-center justify-center gap-1 rounded-md border-2 border-primary py-1 text-xs font-bold text-primary transition hover:bg-primary/10 disabled:opacity-50 animate-in fade-in"><Save className="h-3.5 w-3.5" />{busy ? "جارٍ الحفظ..." : "حفظ عرض السعر"}</button>
+        )}
       </aside>
     </div>
   );
