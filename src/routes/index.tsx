@@ -151,6 +151,26 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
     queryFn: () => list({ data: { pw } }),
     refetchInterval: 20000,
   });
+  // حفظ كل المحادثات على الجهاز للعمل دون إنترنت
+  const qcAll = useQueryClient();
+  const getAll = useServerFn(getMessages);
+  const [online, setOnline] = useState(true);
+  useEffect(() => {
+    const u = () => setOnline(navigator.onLine); u();
+    window.addEventListener("online", u); window.addEventListener("offline", u);
+    return () => { window.removeEventListener("online", u); window.removeEventListener("offline", u); };
+  }, []);
+  const synced = useRef(false);
+  useEffect(() => {
+    if (!online || synced.current || customers.length === 0) return;
+    synced.current = true;
+    (async () => {
+      for (const c of customers) {
+        if (!navigator.onLine) break;
+        await qcAll.prefetchQuery({ queryKey: ["messages", c.id], queryFn: () => getAll({ data: { pw, id: c.id } }), staleTime: 60_000 }).catch(() => {});
+      }
+    })();
+  }, [online, customers, qcAll, getAll, pw]);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<Stage | "all">("all");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -221,6 +241,11 @@ function Dashboard({ pw, onLogout }: { pw: string; onLogout: () => void }) {
 
   return (
     <div dir="rtl" className="flex min-h-screen flex-col bg-background text-foreground lg:h-screen lg:overflow-hidden">
+      {!online && (
+        <div className="bg-accent px-3 py-1 text-center text-xs font-semibold text-accent-foreground">
+          أنت دون إنترنت — تعرض المحادثات والأصناف المحفوظة على الجهاز، وتتحدث تلقائياً عند عودة الاتصال
+        </div>
+      )}
       <header className="relative overflow-hidden bg-ink px-4 py-3 text-ink-foreground md:px-8 lg:py-1">
         <div className="pointer-events-none absolute -top-10 left-[30%] h-40 w-1.5 rotate-[35deg] bg-primary" />
         <div className="pointer-events-none absolute -top-10 left-[31.5%] h-40 w-px rotate-[35deg] bg-primary/50" />

@@ -1,4 +1,8 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import { get as idbGet, set as idbSet, del as idbDel } from "idb-keyval";
+import { registerOfflineWorker } from "../lib/pwa";
 import {
   Outlet,
   Link,
@@ -121,20 +125,20 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+const persister = createAsyncStoragePersister({
+  storage: { getItem: (k) => idbGet(k), setItem: (k, v) => idbSet(k, v), removeItem: (k) => idbDel(k) },
+  key: "actes-crm-cache",
+  throttleTime: 2000,
+});
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  useEffect(() => {
-    const inIframe = window.self !== window.top;
-    const isPreview = location.hostname.startsWith("id-preview--");
-    if ("serviceWorker" in navigator && !inIframe && !isPreview) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
-    }
-  }, []);
+  useEffect(() => { void registerOfflineWorker(); }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister, maxAge: 30 * 24 * 60 * 60_000, buster: "v1" }}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }
