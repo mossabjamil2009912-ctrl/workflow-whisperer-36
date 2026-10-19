@@ -532,6 +532,7 @@ function Chat({ pw, c, onBack, onInfo }: { pw: string; c: Cust; onBack: () => vo
           <Paperclip className="h-4 w-4" />
         </button>
         <textarea value={text} onChange={(e) => setText(e.target.value)} rows={1} placeholder={file ? "تعليق (اختياري)" : "مراسلة"}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }}
           className="max-h-24 min-h-8 flex-1 resize-none rounded-3xl bg-wa-bot px-3 py-1.5 text-xs text-wa-text outline-none placeholder:text-wa-muted" />
         <button disabled={sending || (!text.trim() && !file)} aria-label="إرسال" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-wa-mic text-wa-text disabled:opacity-60">
           <Send className="h-3.5 w-3.5 -scale-x-100" />
