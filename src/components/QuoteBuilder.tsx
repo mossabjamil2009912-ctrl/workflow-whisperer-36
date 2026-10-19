@@ -78,24 +78,25 @@ function quoteHtml(no: string, cust: { name: string; phone: string; city: string
 
 async function quotePdfBase64(no: string, cust: { name: string; phone: string; city: string }, lines: Line[], notes: string) {
   const { css, html } = quoteBody(no, cust, lines, notes);
-  if (!document.getElementById("cairo-font")) {
-    const l = document.createElement("link"); l.id = "cairo-font"; l.rel = "stylesheet";
-    l.href = "https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap"; document.head.appendChild(l);
-  }
-  const box = document.createElement("div");
-  box.style.cssText = "position:fixed;left:-10000px;top:0";
-  box.innerHTML = `<style>${css}</style>${html}`;
-  document.body.appendChild(box);
+  // Isolated iframe: app styles use oklch() colors which html2canvas cannot parse.
+  const frame = document.createElement("iframe");
+  frame.style.cssText = "position:fixed;left:-10000px;top:0;width:820px;height:1200px;border:0";
+  document.body.appendChild(frame);
   try {
-    await document.fonts.ready;
-    await Promise.all([...box.querySelectorAll("img")].map((im) => (im.complete ? null : new Promise((r) => { im.onload = im.onerror = r; }))));
+    const doc = frame.contentDocument!;
+    doc.open();
+    doc.write(`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap"><base href="${location.origin}/"><style>${css}</style></head><body style="margin:0;background:#fff">${html}</body></html>`);
+    doc.close();
+    await new Promise((r) => { if (doc.readyState === "complete") r(null); else frame.onload = () => r(null); setTimeout(r, 3000); });
+    await doc.fonts.ready;
+    await Promise.all([...doc.querySelectorAll("img")].map((im) => (im.complete ? null : new Promise((r) => { im.onload = im.onerror = r; }))));
     const html2pdf = (await import("html2pdf.js")).default;
     const uri: string = await html2pdf().set({
       margin: [8, 10, 8, 10], image: { type: "jpeg", quality: 0.95 },
       html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "mm", format: "a4" }, pagebreak: { mode: ["css", "avoid-all"] }
-    } as never).from(box.querySelector(".qt") as HTMLElement).outputPdf("datauristring");
+    } as never).from(doc.querySelector(".qt") as HTMLElement).outputPdf("datauristring");
     return uri.split(",")[1]!;
-  } finally { box.remove(); }
+  } finally { frame.remove(); }
 }
 
 export function QuoteBuilder({ pw, initialCustomerId }: { pw: string; initialCustomerId?: string | null }) {
